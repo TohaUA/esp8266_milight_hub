@@ -58,7 +58,7 @@
 
 #define WEB_INDEX_FILENAME "/web/index.html"
 
-#define MILIGHT_GITHUB_USER "sidoh"
+#define MILIGHT_GITHUB_USER "TohaUA"
 #define MILIGHT_GITHUB_REPO "esp8266_milight_hub"
 #define MILIGHT_REPO_WEB_PATH "/data/web/index.html"
 

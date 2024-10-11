@@ -4,12 +4,9 @@
 #include <algorithm>
 #include <JsonHelpers.h>
 #include <GroupAlias.h>
-#include <ProjectFS.h>
 #include <StreamUtils.h>
 
-#ifdef ESP32
-  #include <SPIFFS.h>
-#endif
+#include "ProjectFS.h"
 
 #define PORT_POSITION(s) ( s.indexOf(':') )
 

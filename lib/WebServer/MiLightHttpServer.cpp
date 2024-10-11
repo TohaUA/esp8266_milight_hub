@@ -1,4 +1,3 @@
-#include <FS.h>
 #include <WiFiUdp.h>
 #include <IntParsing.h>
 #include <Settings.h>
@@ -16,7 +15,6 @@
 
 
 #ifdef ESP32
-  #include <SPIFFS.h>
   #include <Update.h>
 #endif
 

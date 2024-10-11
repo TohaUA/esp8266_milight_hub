@@ -3,7 +3,6 @@
 #include <WiFiManager.h>
 #include <ArduinoJson.h>
 #include <cstdlib>
-#include <FS.h>
 #include <IntParsing.h>
 #include <LinkedList.h>
 #include <LEDStatus.h>
@@ -31,7 +30,6 @@
 #elif ESP32
   #include "ESP32SSDP.h"
   #include <esp_wifi.h>
-  #include <SPIFFS.h>
   #include <ESPmDNS.h>
 #endif
 

@@ -6,6 +6,7 @@
 #include <RadioSwitchboard.h>
 #include <PacketSender.h>
 #include <TransitionController.h>
+#include <ProjectFS.h>
 
 #ifndef _MILIGHT_HTTP_SERVER
 #define _MILIGHT_HTTP_SERVER
@@ -107,7 +108,7 @@ protected:
 
   void saveSettings();
 
-  File updateFile;
+  FileFS updateFile;
 
   PassthroughAuthProvider<Settings> authProvider;
   RichHttpServer<RichHttp::Generics::Configs::EspressifBuiltin> server;

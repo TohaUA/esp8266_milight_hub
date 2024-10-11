@@ -5,16 +5,14 @@
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <cont.h>
-#elif ESP32
 
+#elif ESP32
 #include <WiFi.h>
-#include <SPIFFS.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
 #endif
 
-#include <ProjectFS.h>
+#include "ProjectFS.h"
 
 #ifdef ESP8266
 extern "C" {

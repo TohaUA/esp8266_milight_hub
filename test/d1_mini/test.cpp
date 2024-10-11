@@ -1,6 +1,6 @@
 // #if defined(ARDUINO) && defined(UNIT_TEST)
 
-#include <ProjectFS.h>
+#include "ProjectFS.h"
 #include <Arduino.h>
 
 #include <GroupState.h>
@@ -13,10 +13,6 @@
 #include <Units.h>
 
 #include "unity.h"
-
-#ifdef ESP32
-  #include <SPIFFS.h>
-#endif
 
 //================================================================================
 // Packet formatter

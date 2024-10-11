@@ -3,12 +3,9 @@
 //
 
 #include <BackupManager.h>
-#ifdef ESP32
-  #include <SPIFFS.h>
-#endif
-#include <ProjectFS.h>
 #include <StreamUtils.h>
 
+#include "ProjectFS.h"
 
 const uint8_t BackupManager::SETTINGS_BACKUP_VERSION = 1;
 const uint32_t BackupManager::SETTINGS_MAGIC_HEADER = 0x92A7C300 | SETTINGS_BACKUP_VERSION;
