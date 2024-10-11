@@ -56,15 +56,15 @@ Both modules are SPI devices and should be connected to the standard SPI pins on
 <img src="https://user-images.githubusercontent.com/40266/47967518-67556f00-e05e-11e8-857d-1173a9da955c.png" align="left" width="32%" />
 <img src="https://user-images.githubusercontent.com/40266/47967520-691f3280-e05e-11e8-838a-83706df2edb0.png" align="left" width="22%" />
 
-NodeMCU | Radio | Color
--- | -- | --
-GND | GND | Black
-3V3 | VCC | Red
-D2 (GPIO4) | CE | Orange
-D8 (GPIO15) | CSN/CS | Yellow
-D5 (GPIO14) | SCK | Green
-D7 (GPIO13) | MOSI | Blue
-D6 (GPIO12) | MISO | Violet
+NodeMCU (Esp8266) | Esp32        | Radio | Color
+--------- |--------------|----| --
+GND | GND          | GND | Black        
+3V3 | 3V3          | VCC | Red    
+D2 (GPIO4) | D4 (GPIO4)   | CE | Orange 
+D8 (GPIO15) | D5 (GPIO5)   | CSN/CS | Yellow 
+D5 (GPIO14) | D18 (GPIO18) | SCK | Green 
+D7 (GPIO13) | D23 (GPIO23) | MOSI | Blue  
+D6 (GPIO12) | D19 (GPIO19) | MISO | Violet 
 
 _Image source: [MySensors.org](https://mysensors.org)_
 
@@ -125,13 +125,12 @@ You can configure aliases or labels for a given _(Device Type, Device ID, Group 
 
 ## REST API
 
-The REST API is specified using the [OpenAPI v3](https://swagger.io/docs/specification/about/) specification.
+Generated API documentation is available here:
 
-[openapi.yaml](docs/openapi.yaml) contains the raw spec.
+* [latest version](https://sidoh.github.io/esp8266_milight_hub/branches/latest)
+* [all versions](https://sidoh.github.io/esp8266_milight_hub)
 
-[You can view generated documentation for the master branch here.](https://sidoh.github.io/esp8266_milight_hub/branches/latest)
-
-[Docs for other branches can be found here](https://sidoh.github.io/esp8266_milight_hub)
+API documentation is generated from the [OpenAPI spec](docs/openapi.yaml) using redoc.
 
 ## MQTT
 

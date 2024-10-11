@@ -8,6 +8,7 @@
 #include <MiLightRadioConfig.h>
 #include <AboutHelper.h>
 
+
 static const char* STATUS_CONNECTED = "connected";
 static const char* STATUS_DISCONNECTED = "disconnected_clean";
 static const char* STATUS_LWT_DISCONNECTED = "disconnected_unclean";
@@ -56,7 +57,7 @@ void MqttClient::begin() {
 
 bool MqttClient::connect() {
   char nameBuffer[30];
-  sprintf_P(nameBuffer, PSTR("milight-hub-%u"), ESP.getChipId());
+  sprintf_P(nameBuffer, PSTR("milight-hub-%u"), getESPId());
 
 #ifdef MQTT_DEBUG
     Serial.println(F("MqttClient - connecting using name"));
@@ -219,11 +220,8 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   printf("MqttClient - Got message on topic: %s\n%s\n", topic, cstrPayload);
 #endif
 
-  char topicPattern[settings.mqttTopicPattern.length()];
-  strcpy(topicPattern, settings.mqttTopicPattern.c_str());
-
-  TokenIterator patternIterator(topicPattern, settings.mqttTopicPattern.length(), '/');
-  TokenIterator topicIterator(topic, strlen(topic), '/');
+  auto patternIterator = std::make_shared<TokenIterator>(settings.mqttTopicPattern.c_str(), settings.mqttTopicPattern.length(), '/');
+  auto topicIterator = std::make_shared<TokenIterator>(topic, strlen(topic), '/');
   UrlTokenBindings tokenBindings(patternIterator, topicIterator);
 
   if (tokenBindings.hasBinding("device_alias")) {
@@ -234,7 +232,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
       Serial.printf_P(PSTR("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n"), alias.c_str());
       return;
     } else {
-      BulbId bulbId = itr->second;
+      BulbId bulbId = itr->second.bulbId;
 
       deviceId = bulbId.deviceId;
       config = MiLightRemoteConfig::fromType(bulbId.deviceType);

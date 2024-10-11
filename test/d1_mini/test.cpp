@@ -1,6 +1,6 @@
 // #if defined(ARDUINO) && defined(UNIT_TEST)
 
-#include <FS.h>
+#include "ProjectFS.h"
 #include <Arduino.h>
 
 #include <GroupState.h>
@@ -23,8 +23,8 @@ void run_packet_test(uint8_t* packet, PacketFormatter* packetFormatter, const Bu
   GroupStateStore stateStore(10, 0);
   Settings settings;
   RgbCctPacketFormatter formatter;
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& result = jsonBuffer.createObject();
+  DynamicJsonDocument doc(1024);  // Remplace DynamicJsonBuffer par DynamicJsonDocument
+  JsonObject result = doc.to<JsonObject>();  // Crée un JsonObject à partir de doc
 
   packetFormatter->prepare(0, 0);
   BulbId bulbId = packetFormatter->parsePacket(packet, result);
@@ -343,7 +343,7 @@ void test_group_0() {
 // setup connects serial, runs test cases (upcoming)
 void setup() {
   delay(2000);
-  SPIFFS.begin();
+  ProjectFS.begin();
   Serial.begin(9600);
 
   UNITY_BEGIN();
