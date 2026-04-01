@@ -680,8 +680,7 @@ void MiLightHttpServer::handlePacketSent(uint8_t *packet, const MiLightRemoteCon
       bulbState->applyState(state, bulbId, NORMALIZED_GROUP_STATE_FIELDS);
     }
 
-    size_t jsonLen = measureJson(output);
-    char responseBuffer[jsonLen + 1];
+    char responseBuffer[512];
     serializeJson(output, responseBuffer, sizeof(responseBuffer));
     wsServer.broadcastTXT(reinterpret_cast<uint8_t*>(responseBuffer));
   }
