@@ -103,7 +103,12 @@ void MiLightClient::prepare(
   const uint16_t deviceId,
   const uint8_t groupId
 ) {
-  prepare(MiLightRemoteConfig::fromType(type), deviceId, groupId);
+  const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(type);
+  if (config == NULL) {
+    Serial.println(F("MiLightClient::prepare - unknown remote type, ignoring"));
+    return;
+  }
+  prepare(config, deviceId, groupId);
 }
 
 void MiLightClient::updateColorRaw(const uint8_t color) {
