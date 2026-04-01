@@ -361,8 +361,12 @@ void aboutHandler(JsonDocument& json) {
 // the MQTT topic to delete retained state
 void onGroupDeleted(const BulbId& id) {
   if (mqttClient != NULL) {
+    const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(id.deviceType);
+    if (config == NULL) {
+      return;
+    }
     mqttClient->sendState(
-      *MiLightRemoteConfig::fromType(id.deviceType),
+      *config,
       id.deviceId,
       id.groupId,
       ""
