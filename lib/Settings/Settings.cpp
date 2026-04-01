@@ -448,8 +448,9 @@ void Settings::addAlias(const char *alias, const BulbId &bulbId) {
 bool Settings::deleteAlias(size_t id) {
   for (auto it = groupIdAliases.begin(); it != groupIdAliases.end(); ++it) {
     if (it->second.id == id) {
+      BulbId bulbId = it->second.bulbId;
       groupIdAliases.erase(it);
-      deletedGroupIdAliases[it->second.bulbId.getCompactId()] = it->second.bulbId;
+      deletedGroupIdAliases[bulbId.getCompactId()] = bulbId;
 
       return true;
     }
