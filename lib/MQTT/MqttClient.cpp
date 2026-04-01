@@ -29,7 +29,7 @@ MqttClient::~MqttClient() {
   String aboutStr = generateConnectionStatusMessage(STATUS_DISCONNECTED);
   mqttClient.publish(settings.mqttClientStatusTopic.c_str(), aboutStr.c_str(), true);
   mqttClient.disconnect();
-  delete this->domain;
+  delete[] this->domain;
 }
 
 void MqttClient::onConnect(OnConnectFn fn) {
