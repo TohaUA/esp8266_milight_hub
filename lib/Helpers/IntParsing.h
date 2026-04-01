@@ -8,8 +8,12 @@ const T strToHex(const char* s, size_t length) {
   T value = 0;
   T base = 1;
 
-  for (size_t i = length-1; i >= 0; i--) {
-    const char c = s[i];
+  if (length == 0) {
+    return 0;
+  }
+
+  for (size_t i = length; i > 0; i--) {
+    const char c = s[i - 1];
 
     if (c >= '0' && c <= '9') {
       value += ((c - '0') * base);
