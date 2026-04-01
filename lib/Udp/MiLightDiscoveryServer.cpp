@@ -36,8 +36,13 @@ void MiLightDiscoveryServer::handleClient() {
 
   if (packetSize) {
     char buffer[size(V6_SEARCH_STRING) + 1];
-    socket.read(buffer, packetSize);
-    buffer[packetSize] = 0;
+    size_t readLen = packetSize < sizeof(buffer) - 1 ? packetSize : sizeof(buffer) - 1;
+    socket.read(buffer, readLen);
+    buffer[readLen] = 0;
+    // Flush remaining bytes if packet was larger than buffer
+    if (packetSize > readLen) {
+      socket.flush();
+    }
 
 #ifdef MILIGHT_UDP_DEBUG
     printf("Got discovery packet: %s\n", buffer);
