@@ -36,7 +36,7 @@ void FUT089PacketFormatter::updateColorRaw(uint8_t value) {
 void FUT089PacketFormatter::updateTemperature(uint8_t value) {
   // look up our current mode
   const GroupState* ourState = this->stateStore->get(this->deviceId, this->groupId, REMOTE_TYPE_FUT089);
-  BulbMode originalBulbMode;
+  BulbMode originalBulbMode = BulbMode::BULB_MODE_WHITE;
 
   if (ourState != NULL) {
     originalBulbMode = ourState->getBulbMode();
