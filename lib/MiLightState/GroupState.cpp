@@ -473,6 +473,7 @@ bool GroupState::setBrightness(uint8_t brightness) {
     case BULB_MODE_SCENE:
       state.fields._isSetBrightnessMode = 1;
       state.fields._brightnessMode = brightness;
+      break;
     default:
       return false;
   }
