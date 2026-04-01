@@ -21,7 +21,7 @@ void RgbCctPacketFormatter::nextMode() {
 }
 
 void RgbCctPacketFormatter::previousMode() {
-  updateMode((lastMode-1)%RGB_CCT_NUM_MODES);
+  updateMode((lastMode + RGB_CCT_NUM_MODES - 1) % RGB_CCT_NUM_MODES);
 }
 
 void RgbCctPacketFormatter::updateBrightness(uint8_t brightness) {
