@@ -269,7 +269,11 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   }
 
   StaticJsonDocument<400> buffer;
-  deserializeJson(buffer, cstrPayload);
+  DeserializationError err = deserializeJson(buffer, cstrPayload);
+  if (err) {
+    Serial.printf_P(PSTR("MqttClient - JSON parse error: %s\n"), err.c_str());
+    return;
+  }
   JsonObject obj = buffer.as<JsonObject>();
 
 #ifdef MQTT_DEBUG
