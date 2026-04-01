@@ -90,7 +90,12 @@ void RgbwPacketFormatter::updateColorRaw(uint8_t value) {
 }
 
 void RgbwPacketFormatter::updateColorWhite() {
-  uint8_t button = RGBW_GROUP_1_MAX_LEVEL + ((groupId - 1)*2);
+  uint8_t button;
+  if (groupId == 0) {
+    button = RGBW_ALL_MAX_LEVEL;
+  } else {
+    button = RGBW_GROUP_1_MAX_LEVEL + ((groupId - 1) * 2);
+  }
   command(button, 0);
 }
 
