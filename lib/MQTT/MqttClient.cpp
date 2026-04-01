@@ -212,9 +212,14 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   uint16_t deviceId = 0;
   uint8_t groupId = 0;
   const MiLightRemoteConfig* config = &FUT092Config;
-  char cstrPayload[length + 1];
+  const int MAX_MQTT_PAYLOAD = 512;
+  if (length > MAX_MQTT_PAYLOAD) {
+    Serial.printf_P(PSTR("MqttClient - payload too large (%d bytes), ignoring\n"), length);
+    return;
+  }
+  char cstrPayload[MAX_MQTT_PAYLOAD + 1];
+  memcpy(cstrPayload, payload, length);
   cstrPayload[length] = 0;
-  memcpy(cstrPayload, payload, sizeof(byte)*length);
 
 #ifdef MQTT_DEBUG
   printf("MqttClient - Got message on topic: %s\n%s\n", topic, cstrPayload);
