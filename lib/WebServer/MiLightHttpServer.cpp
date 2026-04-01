@@ -993,6 +993,7 @@ void MiLightHttpServer::handleCreateBackup(RequestContext &request) {
     Serial.println(F("Failed to open backup file"));
     request.response.setCode(500);
     request.response.json[F("error")] = F("Failed to open backup file");
+    return;
   }
 
   WriteBufferingStream bufferedStream(backupFile, 64);
