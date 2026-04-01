@@ -29,7 +29,7 @@ void BulbStateUpdater::loop() {
     BulbId bulbId = staleGroups.shift();
     GroupState* groupState = stateStore.get(bulbId);
 
-    if (groupState->isMqttDirty()) {
+    if (groupState != NULL && groupState->isMqttDirty()) {
       flushGroup(bulbId, *groupState);
       groupState->clearMqttDirty();
     }
@@ -49,8 +49,14 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
   char buffer[documentSize + 1];
   serializeJson(json, buffer, sizeof(buffer));
 
+  const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(bulbId.deviceType);
+  if (config == NULL) {
+    Serial.println(F("BulbStateUpdater: unknown device type, skipping flush"));
+    return;
+  }
+
   mqttClient.sendState(
-    *MiLightRemoteConfig::fromType(bulbId.deviceType),
+    *config,
     bulbId.deviceId,
     bulbId.groupId,
     buffer

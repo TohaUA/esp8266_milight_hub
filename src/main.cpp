@@ -125,8 +125,13 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     return;
   }
 
-  const MiLightRemoteConfig& remoteConfig =
-    *MiLightRemoteConfig::fromType(bulbId.deviceType);
+  const MiLightRemoteConfig* remoteConfig =
+    MiLightRemoteConfig::fromType(bulbId.deviceType);
+
+  if (remoteConfig == NULL) {
+    Serial.println(F("Skipping packet handler: unknown device type"));
+    return;
+  }
 
   // update state to reflect changes from this packet
   GroupState* groupState = stateStore->get(bulbId);
@@ -145,7 +150,7 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     // Sends the state delta derived from the raw packet
     char output[200];
     serializeJson(result, output);
-    mqttClient->sendUpdate(remoteConfig, bulbId.deviceId, bulbId.groupId, output);
+    mqttClient->sendUpdate(*remoteConfig, bulbId.deviceId, bulbId.groupId, output);
 
     // Sends the entire state
     if (groupState != NULL) {
@@ -153,7 +158,7 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     }
   }
 
-  httpServer->handlePacketSent(packet, remoteConfig, bulbId, result);
+  httpServer->handlePacketSent(packet, *remoteConfig, bulbId, result);
 }
 
 /**
