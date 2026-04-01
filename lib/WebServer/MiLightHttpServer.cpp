@@ -534,7 +534,7 @@ void MiLightHttpServer::handleUpdateGroupAlias(RequestContext& request) {
 
   if (config == NULL) {
     char buffer[40];
-    sprintf_P(buffer, PSTR("Unknown device type: %s"), bulbId.deviceType);
+    snprintf_P(buffer, sizeof(buffer), PSTR("Unknown device type: %d"), static_cast<int>(bulbId.deviceType));
     request.response.setCode(400);
     request.response.json["error"] = buffer;
     return;
@@ -571,7 +571,7 @@ void MiLightHttpServer::handleUpdateGroup(RequestContext& request) {
 
     if (config == NULL) {
       char buffer[40];
-      sprintf_P(buffer, PSTR("Unknown device type: %s"), _remoteType);
+      snprintf_P(buffer, sizeof(buffer), PSTR("Unknown device type: %s"), _remoteType);
       request.response.setCode(400);
       request.response.json["error"] = buffer;
       return;
@@ -614,7 +614,7 @@ void MiLightHttpServer::handleSendRaw(RequestContext& request) {
 
   if (config == NULL) {
     char buffer[50];
-    sprintf_P(buffer, PSTR("Unknown device type: %s"), request.pathVariables.get("type"));
+    snprintf_P(buffer, sizeof(buffer), PSTR("Unknown device type: %s"), request.pathVariables.get("type"));
     request.response.setCode(400);
     request.response.json["error"] = buffer;
     return;
@@ -855,7 +855,7 @@ void MiLightHttpServer::handleCreateAlias(RequestContext& request) {
 
   if (settings.groupIdAliases.find(alias) != settings.groupIdAliases.end()) {
     char buffer[200];
-    sprintf_P(buffer, PSTR("Alias already exists: %s"), alias.c_str());
+    snprintf_P(buffer, sizeof(buffer), PSTR("Alias already exists: %s"), alias.c_str());
 
     request.response.setCode(400);
     request.response.json[F("error")] = buffer;

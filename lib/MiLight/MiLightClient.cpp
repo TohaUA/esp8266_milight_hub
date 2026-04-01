@@ -531,7 +531,7 @@ bool MiLightClient::handleTransition(JsonObject args, JsonDocument& responseObj)
 
   if (field == GroupStateField::UNKNOWN) {
     char errorMsg[30];
-    sprintf_P(errorMsg, PSTR("Unknown transition field: %s\n"), fieldName);
+    snprintf_P(errorMsg, sizeof(errorMsg), PSTR("Unknown transition field: %s"), fieldName);
     responseObj[F("error")] = errorMsg;
     return false;
   }
@@ -598,8 +598,8 @@ bool MiLightClient::handleTransition(JsonObject args, JsonDocument& responseObj)
   }
 
   if (transitionBuilder == nullptr) {
-    char errorMsg[30];
-    sprintf_P(errorMsg, PSTR("Recognized, but unsupported transition field: %s\n"), fieldName);
+    char errorMsg[60];
+    snprintf_P(errorMsg, sizeof(errorMsg), PSTR("Unsupported transition field: %s"), fieldName);
     responseObj[F("error")] = errorMsg;
     return false;
   }
