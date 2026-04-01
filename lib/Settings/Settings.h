@@ -75,14 +75,7 @@ enum class WifiMode {
   B, G, N
 };
 
-static const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS({
-  GroupStateField::STATE,
-  GroupStateField::BRIGHTNESS,
-  GroupStateField::COMPUTED_COLOR,
-  GroupStateField::MODE,
-  GroupStateField::COLOR_TEMP,
-  GroupStateField::COLOR_MODE
-});
+extern const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS;
 
 struct GatewayConfig {
   GatewayConfig(uint16_t deviceId, uint16_t port, uint8_t protocolVersion);

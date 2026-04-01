@@ -7,6 +7,15 @@
 #include <ProjectFS.h>
 #include <StreamUtils.h>
 
+const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS({
+  GroupStateField::STATE,
+  GroupStateField::BRIGHTNESS,
+  GroupStateField::COMPUTED_COLOR,
+  GroupStateField::MODE,
+  GroupStateField::COLOR_TEMP,
+  GroupStateField::COLOR_MODE
+});
+
 #ifdef ESP32
   #include <SPIFFS.h>
 #endif

@@ -18,18 +18,7 @@
 #ifndef _MQTT_CLIENT_H
 #define _MQTT_CLIENT_H
 
-static const std::map<int, const __FlashStringHelper*> MQTT_STATUS_STRINGS = {
-  {MQTT_CONNECTION_TIMEOUT, FPSTR("Connection Timeout")},
-  {MQTT_CONNECTION_LOST, FPSTR("Connection Lost")},
-  {MQTT_CONNECT_FAILED, FPSTR("Connect Failed")},
-  {MQTT_DISCONNECTED, FPSTR("Disconnected")},
-  {MQTT_CONNECTED, FPSTR("Connected")},
-  {MQTT_CONNECT_BAD_PROTOCOL, FPSTR("Connect Bad Protocol")},
-  {MQTT_CONNECT_BAD_CLIENT_ID, FPSTR("Connect Bad Client ID")},
-  {MQTT_CONNECT_UNAVAILABLE, FPSTR("Connect Unavailable")},
-  {MQTT_CONNECT_BAD_CREDENTIALS, FPSTR("Connect Bad Credentials")},
-  {MQTT_CONNECT_UNAUTHORIZED, FPSTR("Connect Unauthorized")}
-};
+extern const std::map<int, const __FlashStringHelper*> MQTT_STATUS_STRINGS;
 
 enum MqttConnectionStatus : int {
   ConnectionTimeout     = MQTT_CONNECTION_TIMEOUT,
