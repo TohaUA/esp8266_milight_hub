@@ -292,7 +292,7 @@ void Settings::save() {
     return;
   } else {
     WriteBufferingStream writer{f, 64};
-    serialize(f);
+    serialize(writer);
     writer.flush();
     f.close();
   }
