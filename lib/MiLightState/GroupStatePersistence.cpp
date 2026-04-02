@@ -26,6 +26,10 @@ void GroupStatePersistence::set(const BulbId &id, const GroupState& state) {
   buildFilename(id, path);
 
   File f = ProjectFS.open(path, "w");
+  if (!f) {
+    Serial.printf_P(PSTR("Failed to open state file for writing: %s\n"), path);
+    return;
+  }
   state.dump(f);
   f.close();
 }
