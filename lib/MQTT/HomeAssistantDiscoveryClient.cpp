@@ -63,7 +63,7 @@ void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bu
   config[F("stat_t")] = mqttClient->bindTopicString(settings.mqttStateTopicPattern, bulbId);
   config[F("uniq_id")] = uniqueIdBuffer;
 
-  JsonObject deviceMetadata = config.createNestedObject(F("dev"));
+  JsonObject deviceMetadata = config[F("dev")].to<JsonObject>();
   deviceMetadata[F("name")] = settings.hostname;
   deviceMetadata[F("sw")] = fwVersion;
   deviceMetadata[F("mf")] = F("espressif");
@@ -85,7 +85,7 @@ void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bu
   config[GroupStateFieldNames::EFFECT] = true;
 
   // effect_list
-  JsonArray effects = config.createNestedArray(F("fx_list"));
+  JsonArray effects = config[F("fx_list")].to<JsonArray>();
   effects.add(MiLightCommandNames::NIGHT_MODE);
 
   // These bulbs support switching between rgb/white, and have a "white_mode" command
@@ -112,7 +112,7 @@ void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bu
   }
 
   // supported_color_modes
-  JsonArray colorModes = config.createNestedArray(F("sup_clrm"));
+  JsonArray colorModes = config[F("sup_clrm")].to<JsonArray>();
 
   // Flag RGB support
   if (MiLightRemoteTypeHelpers::supportsRgb(bulbId.deviceType)) {
