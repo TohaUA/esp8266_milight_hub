@@ -413,7 +413,7 @@ void MiLightHttpServer::handleListenGateway(RequestContext& request) {
   responseBuffer += sprintf_P(
     responseBuffer,
     PSTR("\n%s packet received (%d bytes):\n"),
-    remoteConfig->name.c_str(),
+    remoteConfig->name,
     remoteConfig->packetFormatter->getPacketLength()
   );
   remoteConfig->packetFormatter->format(packet, responseBuffer);

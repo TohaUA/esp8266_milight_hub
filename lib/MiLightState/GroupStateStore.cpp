@@ -16,7 +16,7 @@ GroupState* GroupStateStore::get(const BulbId& id) {
       "Couldn't fetch state for 0x%04X / %d / %s in the cache, getting it from persistence\n",
       id.deviceId,
       id.groupId,
-      MiLightRemoteConfig::fromType(id.deviceType)->name.c_str()
+      MiLightRemoteConfig::fromType(id.deviceType)->name
     );
 #endif
     trackEviction();
@@ -117,7 +117,7 @@ void GroupStateStore::trackEviction() {
       "Evicting from cache: 0x%04X / %d / %s\n",
       bulbId.deviceId,
       bulbId.groupId,
-      config ? config->name.c_str() : "unknown"
+      config ? config->name : "unknown"
     );
 #endif
   }
@@ -137,7 +137,7 @@ bool GroupStateStore::flush() {
       "Flushing dirty state for 0x%04X / %d / %s\n",
       bulbId.deviceId,
       bulbId.groupId,
-      MiLightRemoteConfig::fromType(bulbId.deviceType)->name.c_str()
+      MiLightRemoteConfig::fromType(bulbId.deviceType)->name
     );
 #endif
 
