@@ -1,7 +1,7 @@
 #include <GroupState.h>
 #include <Units.h>
 #include <MiLightRemoteConfig.h>
-#include <RGBConverter.h>
+#include <ColorUtils.h>
 #include <BulbId.h>
 #include <MiLightCommands.h>
 
@@ -1014,11 +1014,10 @@ bool GroupState::isSetColor() const {
 
 ParsedColor GroupState::getColor() const {
   uint8_t rgb[3];
-  RGBConverter converter;
   uint16_t hue = getHue();
   uint8_t sat = isSetSaturation() ? getSaturation() : 100;
 
-  converter.hsvToRgb(
+  ColorUtils::hsvToRgb(
     hue / 360.0,
     // Default to fully saturated
     sat / 100.0,

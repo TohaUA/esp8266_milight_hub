@@ -1,13 +1,12 @@
 #include <ParsedColor.h>
-#include <RGBConverter.h>
+#include <ColorUtils.h>
 #include <TokenIterator.h>
 #include <GroupStateField.h>
 #include <IntParsing.h>
 
 ParsedColor ParsedColor::fromRgb(uint16_t r, uint16_t g, uint16_t b) {
   double hsv[3];
-  RGBConverter converter;
-  converter.rgbToHsv(r, g, b, hsv);
+  ColorUtils::rgbToHsv(r, g, b, hsv);
 
   uint16_t hue = round(hsv[0]*360);
   uint8_t saturation = round(hsv[1]*100);
