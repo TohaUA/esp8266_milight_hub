@@ -145,7 +145,9 @@ void MqttClient::handleClient() {
 
   if (!connected && mqttClient.connected()) {
     this->connected = true;
-    this->onConnectFn();
+    if (this->onConnectFn) {
+      this->onConnectFn();
+    }
   } else if (!mqttClient.connected()) {
     this->connected = false;
   }
@@ -371,5 +373,9 @@ MqttConnectionStatus MqttClient::getConnectionStatus() {
 }
 
 const __FlashStringHelper* MqttClient::getConnectionStatusString() {
-  return MQTT_STATUS_STRINGS.at(this->mqttClient.state());
+  auto it = MQTT_STATUS_STRINGS.find(this->mqttClient.state());
+  if (it != MQTT_STATUS_STRINGS.end()) {
+    return it->second;
+  }
+  return F("Unknown");
 }
