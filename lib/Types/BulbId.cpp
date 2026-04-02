@@ -68,7 +68,7 @@ void BulbId::load(Stream &stream) {
 
 // writes a BulbId in the format of "deviceType,deviceId,groupId"
 void BulbId::dump(Stream &stream) const {
-  stream.print(MiLightRemoteTypeHelpers::remoteTypeToString(deviceType).c_str());
+  stream.print(MiLightRemoteTypeHelpers::remoteTypeToString(deviceType));
   stream.print(static_cast<char>(0));
 
   stream.print(deviceId);
