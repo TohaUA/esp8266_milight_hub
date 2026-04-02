@@ -25,6 +25,7 @@ License (MIT license):
   THE SOFTWARE.
 
 */
+#ifdef ESP8266
 #define LWIP_OPEN_SRC
 #include <functional>
 #include "New_ESP8266SSDP.h"
@@ -439,3 +440,4 @@ void SSDPClass::_startTimer() {
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SSDP)
 SSDPClass SSDP;
 #endif
+#endif // ESP8266

@@ -30,11 +30,11 @@ License (MIT license):
 #define ESP8266SSDP_H
 
 #include <Arduino.h>
-#ifdef ESP8266
-  #include <ESP8266WiFi.h>
-#elif ESP32
-  #include <WiFi.h>
-#endif
+#ifndef ESP8266
+// On ESP32, forward to the ESP32SSDP library
+#include "ESP32SSDP.h"
+#else
+#include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
 class UdpContext;
@@ -129,4 +129,5 @@ class SSDPClass{
 extern SSDPClass SSDP;
 #endif
 
+#endif // ESP8266
 #endif
