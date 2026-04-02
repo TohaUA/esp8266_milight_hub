@@ -614,7 +614,11 @@ bool GroupState::clearMqttDirty() {
 
 void GroupState::load(Stream& stream) {
   for (size_t i = 0; i < DATA_LONGS; i++) {
-    stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
+    size_t bytesRead = stream.readBytes(reinterpret_cast<uint8_t*>(&state.rawData[i]), 4);
+    if (bytesRead != 4) {
+      initFields();
+      return;
+    }
   }
   clearDirty();
 }
