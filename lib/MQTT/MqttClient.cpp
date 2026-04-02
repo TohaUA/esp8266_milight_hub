@@ -309,21 +309,32 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
 }
 
 String MqttClient::bindTopicString(const String& topicPattern, const BulbId& bulbId) {
-  String boundTopic = topicPattern;
-  String deviceIdHex = bulbId.getHexDeviceId();
+  // Pre-format substitution values on stack (no heap allocs)
+  char hexDeviceId[7];
+  sprintf_P(hexDeviceId, PSTR("0x%X"), bulbId.deviceId);
 
-  boundTopic.replace(":device_id", deviceIdHex);
-  boundTopic.replace(":hex_device_id", deviceIdHex);
-  boundTopic.replace(":dec_device_id", String(bulbId.deviceId));
-  boundTopic.replace(":group_id", String(bulbId.groupId));
-  boundTopic.replace(":device_type", MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType));
+  char decDeviceId[6];
+  sprintf(decDeviceId, "%u", bulbId.deviceId);
 
+  char groupIdStr[4];
+  sprintf(groupIdStr, "%u", bulbId.groupId);
+
+  const char* deviceType = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
+
+  const char* alias = "__unnamed_group";
   auto it = settings.findAlias(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
   if (it != settings.groupIdAliases.end()) {
-    boundTopic.replace(":device_alias", it->first);
-  } else {
-    boundTopic.replace(":device_alias", "__unnamed_group");
+    alias = it->first.c_str();
   }
+
+  // Replace longer tokens first to avoid substring matches
+  String boundTopic = topicPattern;
+  boundTopic.replace(":device_alias", alias);
+  boundTopic.replace(":hex_device_id", hexDeviceId);
+  boundTopic.replace(":dec_device_id", decDeviceId);
+  boundTopic.replace(":device_id", hexDeviceId);
+  boundTopic.replace(":device_type", deviceType);
+  boundTopic.replace(":group_id", groupIdStr);
 
   return boundTopic;
 }
