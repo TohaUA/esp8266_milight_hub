@@ -8,7 +8,6 @@
 #include <PacketSender.h>
 #include <TransitionController.h>
 #include <cstring>
-#include <map>
 
 #ifndef _MILIGHTCLIENT_H
 #define _MILIGHTCLIENT_H
@@ -113,12 +112,13 @@ public:
   JsonVariant extractStatus(JsonObject object);
 
 protected:
-  struct cmp_str {
-    bool operator()(char const *a, char const *b) const {
-        return std::strcmp(a, b) < 0;
-    }
+  struct FieldSetter {
+    const char* name;
+    void (*handler)(MiLightClient*, JsonVariant);
   };
-  static const std::map<const char*, std::function<void(MiLightClient*, JsonVariant)>, cmp_str> FIELD_SETTERS;
+
+  static const FieldSetter FIELD_SETTERS[];
+  static const size_t NUM_FIELD_SETTERS;
   static const char* FIELD_ORDERINGS[];
 
   RadioSwitchboard& radioSwitchboard;

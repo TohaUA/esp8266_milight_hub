@@ -6,10 +6,6 @@
 #include <TokenIterator.h>
 #include <ParsedColor.h>
 #include <MiLightCommands.h>
-#include <functional>
-
-
-using namespace std::placeholders;
 
 static const uint8_t STATUS_UNDEFINED = 255;
 
@@ -33,36 +29,35 @@ const char* MiLightClient::FIELD_ORDERINGS[] = {
   GroupStateFieldNames::COMMANDS
 };
 
-const std::map<const char*, std::function<void(MiLightClient*, JsonVariant)>, MiLightClient::cmp_str> MiLightClient::FIELD_SETTERS = {
-  {
-    GroupStateFieldNames::STATUS,
-    [](MiLightClient* client, JsonVariant val) {
-      client->updateStatus(parseMilightStatus(val));
-    }
-  },
-  {GroupStateFieldNames::LEVEL, &MiLightClient::updateBrightness},
-  {
-    GroupStateFieldNames::BRIGHTNESS,
-    [](MiLightClient* client, uint16_t arg) {
-      client->updateBrightness(Units::rescale<uint16_t, uint16_t>(arg, 100, 255));
-    }
-  },
-  {GroupStateFieldNames::HUE, &MiLightClient::updateHue},
-  {GroupStateFieldNames::SATURATION, &MiLightClient::updateSaturation},
-  {GroupStateFieldNames::KELVIN, &MiLightClient::updateTemperature},
-  {GroupStateFieldNames::TEMPERATURE, &MiLightClient::updateTemperature},
-  {
-    GroupStateFieldNames::COLOR_TEMP,
-    [](MiLightClient* client, uint16_t arg) {
-      client->updateTemperature(Units::miredsToWhiteVal(arg, 100));
-    }
-  },
-  {GroupStateFieldNames::MODE, &MiLightClient::updateMode},
-  {GroupStateFieldNames::COLOR, &MiLightClient::updateColor},
-  {GroupStateFieldNames::EFFECT, &MiLightClient::handleEffect},
-  {GroupStateFieldNames::COMMAND, &MiLightClient::handleCommand},
-  {GroupStateFieldNames::COMMANDS, &MiLightClient::handleCommands}
+static void setStatus(MiLightClient* client, JsonVariant val) {
+  client->updateStatus(parseMilightStatus(val));
+}
+
+static void setBrightness255(MiLightClient* client, JsonVariant val) {
+  client->updateBrightness(Units::rescale<uint16_t, uint16_t>(val.as<uint16_t>(), 100, 255));
+}
+
+static void setColorTemp(MiLightClient* client, JsonVariant val) {
+  client->updateTemperature(Units::miredsToWhiteVal(val.as<uint16_t>(), 100));
+}
+
+const MiLightClient::FieldSetter MiLightClient::FIELD_SETTERS[] = {
+  {GroupStateFieldNames::STATUS, setStatus},
+  {GroupStateFieldNames::LEVEL, [](MiLightClient* c, JsonVariant v) { c->updateBrightness(v); }},
+  {GroupStateFieldNames::BRIGHTNESS, setBrightness255},
+  {GroupStateFieldNames::HUE, [](MiLightClient* c, JsonVariant v) { c->updateHue(v); }},
+  {GroupStateFieldNames::SATURATION, [](MiLightClient* c, JsonVariant v) { c->updateSaturation(v); }},
+  {GroupStateFieldNames::KELVIN, [](MiLightClient* c, JsonVariant v) { c->updateTemperature(v); }},
+  {GroupStateFieldNames::TEMPERATURE, [](MiLightClient* c, JsonVariant v) { c->updateTemperature(v); }},
+  {GroupStateFieldNames::COLOR_TEMP, setColorTemp},
+  {GroupStateFieldNames::MODE, [](MiLightClient* c, JsonVariant v) { c->updateMode(v); }},
+  {GroupStateFieldNames::COLOR, [](MiLightClient* c, JsonVariant v) { c->updateColor(v); }},
+  {GroupStateFieldNames::EFFECT, [](MiLightClient* c, JsonVariant v) { c->handleEffect(v); }},
+  {GroupStateFieldNames::COMMAND, [](MiLightClient* c, JsonVariant v) { c->handleCommand(v); }},
+  {GroupStateFieldNames::COMMANDS, [](MiLightClient* c, JsonVariant v) { c->handleCommands(v); }}
 };
+
+const size_t MiLightClient::NUM_FIELD_SETTERS = sizeof(FIELD_SETTERS) / sizeof(FIELD_SETTERS[0]);
 
 MiLightClient::MiLightClient(
   RadioSwitchboard& radioSwitchboard,
@@ -363,13 +358,21 @@ void MiLightClient::update(JsonObject request) {
 
   for (const char* fieldName : FIELD_ORDERINGS) {
     if (request.containsKey(fieldName)) {
-      auto handler = FIELD_SETTERS.find(fieldName);
       JsonVariant value = request[fieldName];
 
-      if (handler != FIELD_SETTERS.end()) {
+      // Find handler by linear scan
+      const FieldSetter* handler = nullptr;
+      for (size_t i = 0; i < NUM_FIELD_SETTERS; i++) {
+        if (strcmp(fieldName, FIELD_SETTERS[i].name) == 0) {
+          handler = &FIELD_SETTERS[i];
+          break;
+        }
+      }
+
+      if (handler != nullptr) {
         // No transition -- set field directly
         if (transition == 0) {
-          handler->second(this, value);
+          handler->handler(this, value);
         } else {
           GroupStateField field = GroupStateFieldHelpers::getFieldByName(fieldName);
 
