@@ -3,9 +3,6 @@
 //
 
 #include <BackupManager.h>
-#ifdef ESP32
-  #include <SPIFFS.h>
-#endif
 #include <ProjectFS.h>
 #include <StreamUtils.h>
 

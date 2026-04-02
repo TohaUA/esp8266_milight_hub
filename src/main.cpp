@@ -31,7 +31,6 @@
 #elif ESP32
   #include "ESP32SSDP.h"
   #include <esp_wifi.h>
-  #include <SPIFFS.h>
   #include <ESPmDNS.h>
 #endif
 

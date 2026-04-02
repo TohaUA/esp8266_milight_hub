@@ -8,7 +8,6 @@
 #elif ESP32
 
 #include <WiFi.h>
-#include <SPIFFS.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 

@@ -10,6 +10,9 @@
 #define ProjectFS LittleFS
 #else
 #include <FS.h>
+#ifdef ESP32
+#include <SPIFFS.h>
+#endif
 #define ProjectFS SPIFFS
 #endif
 

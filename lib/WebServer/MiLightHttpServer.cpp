@@ -17,7 +17,6 @@
 #include <BackupManager.h>
 
 #ifdef ESP32
-  #include <SPIFFS.h>
   #include <Update.h>
 #endif
 
