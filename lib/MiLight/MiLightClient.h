@@ -9,7 +9,6 @@
 #include <TransitionController.h>
 #include <cstring>
 #include <map>
-#include <set>
 
 #ifndef _MILIGHTCLIENT_H
 #define _MILIGHTCLIENT_H
