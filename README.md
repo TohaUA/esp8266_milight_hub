@@ -1,4 +1,4 @@
-# esp8266_milight_hub [![Build Status](https://travis-ci.org/sidoh/esp8266_milight_hub.svg?branch=master)](https://travis-ci.org/sidoh/esp8266_milight_hub) [![License][shield-license]][info-license]
+# esp8266_milight_hub [![Build](https://github.com/TohaUA/esp8266_milight_hub/actions/workflows/build.yaml/badge.svg)](https://github.com/TohaUA/esp8266_milight_hub/actions/workflows/build.yaml) [![License][shield-license]][info-license]
 
 This is a replacement for a Milight/LimitlessLED remote/gateway hosted on an ESP8266. Leverages [Henryk Plötz's awesome reverse-engineering work](https://hackaday.io/project/5888-reverse-engineering-the-milight-on-air-protocol).
 
