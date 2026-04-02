@@ -18,10 +18,15 @@ void BulbStateUpdater::disable() {
 }
 
 void BulbStateUpdater::enqueueUpdate(BulbId bulbId, GroupState& groupState) {
+  // Deduplicate: skip if already queued
+  for (size_t i = 0; i < staleGroups.size(); i++) {
+    if (staleGroups[i] == bulbId) {
+      lastQueue = millis();
+      return;
+    }
+  }
   staleGroups.push(bulbId);
-  //Remember time, when queue was added for debounce delay
   lastQueue = millis();
-
 }
 
 void BulbStateUpdater::loop() {

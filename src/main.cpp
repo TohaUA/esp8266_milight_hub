@@ -107,6 +107,10 @@ struct DiscoveryPacer {
       } else {
         settings.deletedGroupIdAliases.clear();
         state = IDLE;
+        // Republish all MQTT state after discovery
+        if (bulbStateUpdater != NULL) {
+          bulbStateUpdater->syncAll();
+        }
       }
     }
   }
