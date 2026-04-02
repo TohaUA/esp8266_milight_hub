@@ -425,6 +425,7 @@ void MiLightHttpServer::sendGroupState(bool allowAsync, BulbId& bulbId, RichHttp
   // Bit hacky to call loop outside of main loop, but should be fine.
   while (blockOnQueue && packetSender->isSending()) {
     packetSender->loop();
+    yield();
   }
 
   JsonObject obj = response.json.to<JsonObject>();
@@ -634,6 +635,7 @@ void MiLightHttpServer::handleSendRaw(RequestContext& request) {
   // To make this response synchronous, wait for packet to be flushed
   while (packetSender->isSending()) {
     packetSender->loop();
+    yield();
   }
 
   request.response.json["success"] = true;
