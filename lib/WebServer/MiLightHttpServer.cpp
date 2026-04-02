@@ -403,7 +403,7 @@ void MiLightHttpServer::handleListenGateway(RequestContext& request) {
     yield();
   }
 
-  char responseBody[200];
+  char responseBody[384];
   char* responseBuffer = responseBody;
 
   responseBuffer += sprintf_P(
