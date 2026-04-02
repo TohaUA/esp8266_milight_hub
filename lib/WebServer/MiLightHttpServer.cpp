@@ -341,8 +341,7 @@ void MiLightHttpServer::handleFirmwareUpload() {
     }
   } else if (upload.status == UPLOAD_FILE_END) {
     if (Update.end(true)) { // true to set the size to the current progress
-      Serial.println("Update Success: Rebooting...");
-      ESP.restart();
+      Serial.println("Update Success: Will reboot after response.");
     } else {
       Update.printError(Serial);
     }
