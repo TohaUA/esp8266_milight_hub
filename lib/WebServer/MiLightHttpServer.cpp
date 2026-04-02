@@ -203,8 +203,6 @@ void MiLightHttpServer::handleSystemPost(RequestContext& request) {
 }
 
 void MiLightHttpServer::serveSettings() {
-  // Save first to set defaults
-  settings.save();
   serveFile(SETTINGS_FILE, APPLICATION_JSON);
 }
 
