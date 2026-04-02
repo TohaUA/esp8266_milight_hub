@@ -210,10 +210,10 @@ void Settings::parseGroupIdAliases(JsonObject json) {
 }
 
 void Settings::dumpGroupIdAliases(JsonObject json) {
-  JsonObject aliases = json.createNestedObject(FPSTR(SettingsKeys::GROUP_ID_ALIASES));
+  JsonObject aliases = json[FPSTR(SettingsKeys::GROUP_ID_ALIASES)].to<JsonObject>();
 
   for (auto & groupIdAlias : groupIdAliases) {
-    JsonArray bulbProps = aliases.createNestedArray(groupIdAlias.first);
+    JsonArray bulbProps = aliases[groupIdAlias.first].to<JsonArray>();
     BulbId bulbId = groupIdAlias.second.bulbId;
     bulbProps.add(MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType));
     bulbProps.add(bulbId.deviceId);
@@ -251,7 +251,7 @@ bool Settings::load(Settings& settings) {
 
     File f = ProjectFS.open(SETTINGS_FILE, "r");
 
-    DynamicJsonDocument json(MILIGHT_HUB_SETTINGS_BUFFER_SIZE);
+    JsonDocument json;
     auto error = deserializeJson(json, f);
     f.close();
 
@@ -321,7 +321,7 @@ void Settings::save() {
 }
 
 void Settings::serialize(Print& stream, const bool prettyPrint) const {
-  DynamicJsonDocument root(MILIGHT_HUB_SETTINGS_BUFFER_SIZE);
+  JsonDocument root;
 
   root[FPSTR(SettingsKeys::ADMIN_USERNAME)] = this->adminUsername;
   root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = this->adminPassword;
@@ -367,21 +367,21 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   root[FPSTR(SettingsKeys::WIFI_MODE)] = wifiModeToString(this->wifiMode);
   root[FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD)] = this->defaultTransitionPeriod;
 
-  JsonArray channelArr = root.createNestedArray(FPSTR(SettingsKeys::RF24_CHANNELS));
+  JsonArray channelArr = root[FPSTR(SettingsKeys::RF24_CHANNELS)].to<JsonArray>();
   JsonHelpers::vectorToJsonArr<RF24Channel, String>(channelArr, rf24Channels, RF24ChannelHelpers::nameFromValue);
 
-  JsonArray deviceIdsArr = root.createNestedArray(FPSTR(SettingsKeys::DEVICE_IDS));
+  JsonArray deviceIdsArr = root[FPSTR(SettingsKeys::DEVICE_IDS)].to<JsonArray>();
   JsonHelpers::copyFrom<uint16_t>(deviceIdsArr, this->deviceIds);
 
-  JsonArray gatewayConfigsArr = root.createNestedArray(FPSTR(SettingsKeys::GATEWAY_CONFIGS));
+  JsonArray gatewayConfigsArr = root[FPSTR(SettingsKeys::GATEWAY_CONFIGS)].to<JsonArray>();
   for (size_t i = 0; i < this->gatewayConfigs.size(); i++) {
-    JsonArray elmt = gatewayConfigsArr.createNestedArray();
+    JsonArray elmt = gatewayConfigsArr.add<JsonArray>();
     elmt.add(this->gatewayConfigs[i]->deviceId);
     elmt.add(this->gatewayConfigs[i]->port);
     elmt.add(this->gatewayConfigs[i]->protocolVersion);
   }
 
-  JsonArray groupStateFieldArr = root.createNestedArray(FPSTR(SettingsKeys::GROUP_STATE_FIELDS));
+  JsonArray groupStateFieldArr = root[FPSTR(SettingsKeys::GROUP_STATE_FIELDS)].to<JsonArray>();
   JsonHelpers::vectorToJsonArr<GroupStateField, const char*>(groupStateFieldArr, groupStateFields, GroupStateFieldHelpers::getFieldName);
 
   if (prettyPrint) {
