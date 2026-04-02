@@ -65,6 +65,53 @@ TransitionController transitions;
 
 std::vector<std::shared_ptr<MiLightUdpServer>> udpServers;
 
+// Paces HA discovery messages: sends 1 per loop iteration instead of all at once
+struct DiscoveryPacer {
+  enum State { IDLE, SENDING_CONFIGS, REMOVING_OLD };
+
+  State state = IDLE;
+  std::map<String, GroupAlias>::const_iterator addIt;
+  std::map<String, GroupAlias>::const_iterator addEnd;
+  std::map<uint32_t, BulbId>::const_iterator removeIt;
+  std::map<uint32_t, BulbId>::const_iterator removeEnd;
+
+  void begin() {
+    if (settings.homeAssistantDiscoveryPrefix.length() == 0 || mqttClient == NULL) {
+      return;
+    }
+    addIt = settings.groupIdAliases.begin();
+    addEnd = settings.groupIdAliases.end();
+    removeIt = settings.deletedGroupIdAliases.begin();
+    removeEnd = settings.deletedGroupIdAliases.end();
+    state = SENDING_CONFIGS;
+  }
+
+  void loop() {
+    if (state == IDLE || mqttClient == NULL) return;
+
+    if (state == SENDING_CONFIGS) {
+      if (addIt != addEnd) {
+        HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
+        discoveryClient.addConfig(addIt->first.c_str(), addIt->second.bulbId);
+        ++addIt;
+      } else {
+        state = REMOVING_OLD;
+      }
+    }
+
+    if (state == REMOVING_OLD) {
+      if (removeIt != removeEnd) {
+        HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
+        discoveryClient.removeConfig(removeIt->second);
+        ++removeIt;
+      } else {
+        settings.deletedGroupIdAliases.clear();
+        state = IDLE;
+      }
+    }
+  }
+} discoveryPacer;
+
 /**
  * Set up UDP servers (both v5 and v6).  Clean up old ones if necessary.
  */
@@ -270,13 +317,7 @@ void applySettings() {
     mqttClient = new MqttClient(settings, milightClient);
     mqttClient->begin();
     mqttClient->onConnect([]() {
-      if (settings.homeAssistantDiscoveryPrefix.length() > 0) {
-        HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
-        discoveryClient.sendDiscoverableDevices(settings.groupIdAliases);
-        discoveryClient.removeOldDevices(settings.deletedGroupIdAliases);
-
-        settings.deletedGroupIdAliases.clear();
-      }
+      discoveryPacer.begin();
     });
 
     bulbStateUpdater = new BulbStateUpdater(settings, *mqttClient, *stateStore);
@@ -545,6 +586,7 @@ void loop() {
     if (mqttClient) {
       mqttClient->handleClient();
       bulbStateUpdater->loop();
+      discoveryPacer.loop();
     }
 
     for (auto & udpServer : udpServers) {
