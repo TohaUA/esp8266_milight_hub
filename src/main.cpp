@@ -91,7 +91,7 @@ void initMilightUdpServers() {
       Serial.println(config.protocolVersion);
     } else {
       udpServers.push_back(std::move(server));
-      udpServers[i]->begin();
+      udpServers.back()->begin();
     }
   }
 
