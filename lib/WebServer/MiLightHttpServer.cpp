@@ -802,13 +802,13 @@ void MiLightHttpServer::handleCreateTransition(RequestContext& request) {
 }
 
 void MiLightHttpServer::handleListAliases(RequestContext& request) {
-  uint8_t page = request.server.hasArg("page") ? request.server.arg("page").toInt() : 1;
+  size_t page = request.server.hasArg("page") ? request.server.arg("page").toInt() : 1;
 
   // at least 1 per page
-  uint8_t perPage = request.server.hasArg("page_size") ? request.server.arg("page_size").toInt() : DEFAULT_PAGE_SIZE;
+  size_t perPage = request.server.hasArg("page_size") ? request.server.arg("page_size").toInt() : DEFAULT_PAGE_SIZE;
   perPage = perPage > 0 ? perPage : 1;
 
-  uint8_t numPages = settings.groupIdAliases.empty() ? 1 : ceil(settings.groupIdAliases.size() / (float) perPage);
+  size_t numPages = settings.groupIdAliases.empty() ? 1 : (settings.groupIdAliases.size() + perPage - 1) / perPage;
 
   // check bounds
   if (page < 1 || page > numPages) {
@@ -826,7 +826,11 @@ void MiLightHttpServer::handleListAliases(RequestContext& request) {
 
   // Skip iterator to start of page
   auto it = settings.groupIdAliases.begin();
-  std::advance(it, (page - 1) * perPage);
+  size_t offset = (page - 1) * perPage;
+  if (offset > settings.groupIdAliases.size()) {
+    offset = settings.groupIdAliases.size();
+  }
+  std::advance(it, offset);
 
   for (size_t i = 0; i < perPage && it != settings.groupIdAliases.end(); i++, it++) {
     JsonObject alias = aliases.createNestedObject();
