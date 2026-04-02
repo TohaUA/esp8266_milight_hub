@@ -522,6 +522,7 @@ void setup() {
 
     // if the config portal was started, make sure to turn off the config AP
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
 
     postConnectSetup();
   }
@@ -569,6 +570,14 @@ void loop() {
     packetSender->loop();
 
     transitions.loop();
+  }
+  else if (initialized && WiFi.getMode() == WIFI_STA && !WiFi.isConnected()) {
+    static unsigned long lastReconnectAttempt = 0;
+    if (millis() - lastReconnectAttempt > 30000) {
+      Serial.println(F("WiFi disconnected. Attempting reconnection..."));
+      WiFi.reconnect();
+      lastReconnectAttempt = millis();
+    }
   }
 }
 
