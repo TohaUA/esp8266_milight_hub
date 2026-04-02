@@ -33,7 +33,8 @@ private:
   PacketQueue queue;
 
   // The current packet we're sending and the number of repeats left
-  const QueuedPacket* currentPacket;
+  QueuedPacket currentPacket;
+  bool hasCurrentPacket;
   size_t packetRepeatsRemaining;
 
   // Handler called after packets are sent.  Will not be called multiple times

@@ -19,7 +19,7 @@ public:
   PacketQueue();
 
   void push(const uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride);
-  const QueuedPacket* currentPacket() const;
+  bool peek(QueuedPacket& out) const;
   void cyclePacket();
   bool isEmpty() const;
   size_t size() const;

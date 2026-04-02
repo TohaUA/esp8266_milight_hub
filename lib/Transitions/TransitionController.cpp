@@ -76,7 +76,7 @@ void TransitionController::addTransition(std::shared_ptr<Transition> transition)
   const size_t MAX_ACTIVE_TRANSITIONS = 50;
   if (activeTransitions.size() >= MAX_ACTIVE_TRANSITIONS) {
     // Remove oldest transition to make room
-    activeTransitions.remove(0);
+    activeTransitions.remove(activeTransitions.getHead());
   }
   activeTransitions.add(transition);
 }

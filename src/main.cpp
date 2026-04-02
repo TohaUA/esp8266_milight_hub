@@ -580,10 +580,14 @@ void loop() {
   if (millis() - lastHeapCheck > 60000) {
     uint32_t freeHeap = ESP.getFreeHeap();
     if (freeHeap < 4096) {
-      Serial.printf_P(PSTR("CRITICAL: Free heap %u bytes, restarting\n"), freeHeap);
+      Serial.print(F("CRITICAL: Free heap "));
+      Serial.print(freeHeap);
+      Serial.println(F(" bytes, restarting"));
       ESP.restart();
     } else if (freeHeap < 8192) {
-      Serial.printf_P(PSTR("WARNING: Low free heap: %u bytes\n"), freeHeap);
+      Serial.print(F("WARNING: Low free heap: "));
+      Serial.print(freeHeap);
+      Serial.println(F(" bytes"));
     }
     lastHeapCheck = millis();
   }

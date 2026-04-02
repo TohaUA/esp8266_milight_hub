@@ -16,9 +16,10 @@ void PacketQueue::push(const uint8_t* packet, const MiLightRemoteConfig* remoteC
   buffer.push(qp);
 }
 
-const QueuedPacket* PacketQueue::currentPacket() const {
-  if (buffer.isEmpty()) return nullptr;
-  return &buffer.first();
+bool PacketQueue::peek(QueuedPacket& out) const {
+  if (buffer.isEmpty()) return false;
+  out = buffer.first();
+  return true;
 }
 
 void PacketQueue::cyclePacket() {
