@@ -5,7 +5,7 @@
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #include <cont.h>
-#elif ESP32
+#elif defined(ESP32)
 
 #include <WiFi.h>
 #include <freertos/FreeRTOS.h>
@@ -38,8 +38,16 @@ void AboutHelper::generateAboutObject(JsonDocument &obj, bool abbreviated) {
   obj[FPSTR("ip_address")] = WiFi.localIP().toString();
 #ifdef ESP8266
   obj[FPSTR("reset_reason")] = ESP.getResetReason();
-#elif ESP32
-  obj[FPSTR("reset_reason")] = String(esp_reset_reason());
+#elif defined(ESP32)
+  {
+    const char* resetReasons[] = {
+      "Unknown", "Power on", "External", "Software",
+      "Panic", "Interrupt WDT", "Task WDT", "Other WDT",
+      "Deepsleep", "Brownout", "SDIO"
+    };
+    int reason = (int)esp_reset_reason();
+    obj[FPSTR("reset_reason")] = (reason >= 0 && reason <= 10) ? resetReasons[reason] : "Unknown";
+  }
 #endif
 
   if (!abbreviated) {
@@ -48,9 +56,9 @@ void AboutHelper::generateAboutObject(JsonDocument &obj, bool abbreviated) {
 #ifdef ESP8266
     obj[FPSTR("arduino_version")] = ESP.getCoreVersion();
     obj[FPSTR("free_stack")] = cont_get_free_stack(g_pcont);
-#elif ESP32
+#elif defined(ESP32)
     obj[FPSTR("arduino_version")] = ESP.getSdkVersion();
-    obj[FPSTR("free_stack")] = uxTaskGetStackHighWaterMark(nullptr);
+    obj[FPSTR("free_stack")] = uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t);
 #endif
 
 #ifdef ESP8266
@@ -59,7 +67,7 @@ ProjectFS.info(fsInfo);
 obj[FPSTR("flash_used")] = fsInfo.usedBytes;
 obj[FPSTR("flash_total")] = fsInfo.totalBytes;
 obj[FPSTR("flash_pct_free")] = fsInfo.totalBytes == 0 ? 0 : (fsInfo.totalBytes - fsInfo.usedBytes) * 100 / fsInfo.totalBytes;
-#elif ESP32
+#elif defined(ESP32)
 
     obj[FPSTR("flash_used")] = ProjectFS.usedBytes();
     obj[FPSTR("flash_total")] = ProjectFS.totalBytes();
