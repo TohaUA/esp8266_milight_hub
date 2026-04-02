@@ -18,26 +18,29 @@ GroupState* GroupStateCache::get(const BulbId& id) {
 }
 
 GroupState* GroupStateCache::set(const BulbId& id, const GroupState& state) {
+  // Check if key exists first, before evicting
+  GroupState* cachedState = getInternal(id);
+
+  if (cachedState != NULL) {
+    *cachedState = state;
+    return cachedState;
+  }
+
+  // Key doesn't exist -- make room if needed
   GroupCacheNode* pushedNode = NULL;
   if (cache.size() >= maxSize) {
     pushedNode = cache.pop();
   }
 
-  GroupState* cachedState = getInternal(id);
-
-  if (cachedState == NULL) {
-    if (pushedNode == NULL) {
-      GroupCacheNode* newNode = new GroupCacheNode(id, state);
-      cachedState = &newNode->state;
-      cache.unshift(newNode);
-    } else {
-      pushedNode->id = id;
-      pushedNode->state = state;
-      cachedState = &pushedNode->state;
-      cache.unshift(pushedNode);
-    }
+  if (pushedNode == NULL) {
+    GroupCacheNode* newNode = new GroupCacheNode(id, state);
+    cachedState = &newNode->state;
+    cache.unshift(newNode);
   } else {
-    *cachedState = state;
+    pushedNode->id = id;
+    pushedNode->state = state;
+    cachedState = &pushedNode->state;
+    cache.unshift(pushedNode);
   }
 
   return cachedState;
