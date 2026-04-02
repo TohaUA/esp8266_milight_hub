@@ -9,7 +9,7 @@ bool GroupAlias::load(Stream &stream) {
   // expect null terminator
   char c = stream.read();
   if (c != 0) {
-    Serial.printf_P(PSTR("ERROR: alias file invalid. expected null after id but got %c (0x%02x)\n"), c, c);
+    Serial.printf("ERROR: alias file invalid. expected null after id but got %c (0x%02x)\n", c, c);
     return false;
   }
 
@@ -40,7 +40,7 @@ void GroupAlias::loadAliases(Stream &stream, std::map<String, GroupAlias> &alias
   // expect null terminator
   stream.read();
 
-  Serial.printf_P(PSTR("Reading %d aliases\n"), numAliases);
+  Serial.printf("Reading %d aliases\n", numAliases);
 
   while (stream.available() && aliases.size() < numAliases) {
     GroupAlias alias;
@@ -55,7 +55,7 @@ void GroupAlias::saveAliases(Stream &stream, const std::map<String, GroupAlias> 
   stream.print(aliases.size());
   stream.write((uint8_t)0);
 
-  Serial.printf_P(PSTR("Saving %d aliases\n"), aliases.size());
+  Serial.printf("Saving %d aliases\n", aliases.size());
 
   for (auto & alias : aliases) {
     alias.second.dump(stream);

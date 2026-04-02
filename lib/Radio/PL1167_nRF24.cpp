@@ -185,9 +185,9 @@ int PL1167_nRF24::internal_receive() {
 // The following code reads un-byte-aligned packet data.
 //
 // #ifdef DEBUG_PRINTF
-//   Serial.printf_P(PSTR("Packet received (%d bytes) RAW: "), outp);
+//   Serial.printf("Packet received (%d bytes) RAW: ", outp);
 //   for (int i = 0; i < _receive_length; i++) {
-//     Serial.printf_P(PSTR("%02X "), tmp[i]);
+//     Serial.printf("%02X ", tmp[i]);
 //   }
 //   Serial.print(F("\n"));
 // #endif
@@ -205,9 +205,9 @@ int PL1167_nRF24::internal_receive() {
   }
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Packet received (%d bytes): "), outp);
+  Serial.printf("Packet received (%d bytes): ", outp);
   for (int i = 0; i < outp; i++) {
-    Serial.printf_P(PSTR("%02X "), tmp[i]);
+    Serial.printf("%02X ", tmp[i]);
   }
   Serial.print(F("\n"));
 #endif
@@ -224,7 +224,7 @@ int PL1167_nRF24::internal_receive() {
 
   if ( crc != recvCrc ) {
 #ifdef DEBUG_PRINTF
-    Serial.printf_P(PSTR("Failed CRC: expected %04X, got %04X\n"), crc, recvCrc);
+    Serial.printf("Failed CRC: expected %04X, got %04X\n", crc, recvCrc);
 #endif
     return 0;
   }
@@ -236,7 +236,7 @@ int PL1167_nRF24::internal_receive() {
   _received = true;
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Successfully parsed packet of length %d\n"), _packet_length);
+  Serial.printf("Successfully parsed packet of length %d\n", _packet_length);
 #endif
 
   return outp;

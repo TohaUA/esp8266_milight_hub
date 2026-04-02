@@ -278,8 +278,8 @@ int LT8900MiLightRadio::iReadRXBuffer(uint8_t *buffer, size_t maxBuffer) {
   }
 
 #ifdef DEBUG_PRINTF
-  printf_P(
-    PSTR("Read %d/%d bytes in RX, read %d bytes into buffer\n"),
+  printf(
+    "Read %d/%d bytes in RX, read %d bytes into buffer\n",
     _currentPacketPos,
     _currentPacketLen,
     bufferIx

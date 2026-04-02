@@ -53,8 +53,8 @@ void MqttClient::onConnect(OnConnectFn fn) {
 
 void MqttClient::begin() {
 #ifdef MQTT_DEBUG
-  printf_P(
-    PSTR("MqttClient - Connecting to: %s\nparsed:%s:%u\n"),
+  printf(
+    "MqttClient - Connecting to: %s\nparsed:%s:%u\n",
     settings._mqttServer.c_str(),
     settings.mqttServer().c_str(),
     settings.mqttPort()
@@ -172,7 +172,7 @@ void MqttClient::subscribe() {
   topic.replace(":device_alias", "+");
 
 #ifdef MQTT_DEBUG
-  printf_P(PSTR("MqttClient - subscribing to topic: %s\n"), topic.c_str());
+  printf("MqttClient - subscribing to topic: %s\n", topic.c_str());
 #endif
 
   mqttClient.subscribe(topic.c_str());
@@ -188,7 +188,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
     const uint8_t* messageBuffer = reinterpret_cast<const uint8_t*>(message);
 
 #ifdef MQTT_DEBUG
-    Serial.printf_P(PSTR("Printing message in parts because it's too large for the packet buffer (%d bytes)"), len);
+    Serial.printf("Printing message in parts because it's too large for the packet buffer (%d bytes)", len);
 #endif
 
     if (!mqttClient.beginPublish(topic, len, retain)) {
@@ -204,7 +204,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
         break;
       }
 #ifdef MQTT_DEBUG
-      Serial.printf_P(PSTR("  Wrote %d bytes\n"), toWrite);
+      Serial.printf("  Wrote %d bytes\n", toWrite);
 #endif
     }
 
@@ -241,7 +241,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   const MiLightRemoteConfig* config = &FUT092Config;
   const int MAX_MQTT_PAYLOAD = 512;
   if (length > MAX_MQTT_PAYLOAD) {
-    Serial.printf_P(PSTR("MqttClient - payload too large (%d bytes), ignoring\n"), length);
+    Serial.printf("MqttClient - payload too large (%d bytes), ignoring\n", length);
     return;
   }
   char cstrPayload[MAX_MQTT_PAYLOAD + 1];
@@ -261,7 +261,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
     auto itr = settings.groupIdAliases.find(alias);
 
     if (itr == settings.groupIdAliases.end()) {
-      Serial.printf_P(PSTR("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n"), alias.c_str());
+      Serial.printf("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n", alias.c_str());
       return;
     } else {
       BulbId bulbId = itr->second.bulbId;
@@ -298,7 +298,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   JsonDocument buffer;
   DeserializationError err = deserializeJson(buffer, cstrPayload);
   if (err) {
-    Serial.printf_P(PSTR("MqttClient - JSON parse error: %s\n"), err.c_str());
+    Serial.printf("MqttClient - JSON parse error: %s\n", err.c_str());
     return;
   }
   JsonObject obj = buffer.as<JsonObject>();

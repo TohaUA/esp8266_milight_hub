@@ -58,7 +58,7 @@ void MiLightDiscoveryServer::handleClient() {
 
 void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
 #ifdef MILIGHT_UDP_DEBUG
-  printf_P(PSTR("Handling discovery for version: %u, %d configs to consider\n"), version, settings.gatewayConfigs.size());
+  printf("Handling discovery for version: %u, %d configs to consider\n", version, settings.gatewayConfigs.size());
 #endif
 
   char buffer[40];
@@ -90,7 +90,7 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
 
 void MiLightDiscoveryServer::sendResponse(char* buffer) {
 #ifdef MILIGHT_UDP_DEBUG
-  printf_P(PSTR("Sending response: %s, remote:"), buffer);
+  printf("Sending response: %s, remote:", buffer);
   Serial.print(socket.remoteIP());
   Serial.print(":");
   Serial.println(socket.remotePort());

@@ -14,7 +14,7 @@ HomeAssistantDiscoveryClient::HomeAssistantDiscoveryClient(Settings& settings, M
 
 void HomeAssistantDiscoveryClient::sendDiscoverableDevices(const std::map<String, GroupAlias>& aliases) {
 #ifdef MQTT_DEBUG
-  Serial.printf_P(PSTR("HomeAssistantDiscoveryClient: Sending %d discoverable devices...\n"), aliases.size());
+  Serial.printf("HomeAssistantDiscoveryClient: Sending %d discoverable devices...\n", aliases.size());
 #endif
 
   for (const auto & alias : aliases) {
@@ -24,7 +24,7 @@ void HomeAssistantDiscoveryClient::sendDiscoverableDevices(const std::map<String
 
 void HomeAssistantDiscoveryClient::removeOldDevices(const std::map<uint32_t, BulbId>& aliases) {
 #ifdef MQTT_DEBUG
-  Serial.printf_P(PSTR("HomeAssistantDiscoveryClient: Removing %d discoverable devices...\n"), aliases.size());
+  Serial.printf("HomeAssistantDiscoveryClient: Removing %d discoverable devices...\n", aliases.size());
 #endif
 
   for (auto itr = aliases.begin(); itr != aliases.end(); ++itr) {
@@ -137,8 +137,8 @@ void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bu
   serializeJson(config, message);
 
 #ifdef MQTT_DEBUG
-  Serial.printf_P(PSTR("HomeAssistantDiscoveryClient: adding discoverable device: %s...\n"), alias);
-  Serial.printf_P(PSTR("  topic: %s\nconfig: %s\n"), topic.c_str(), message.c_str());
+  Serial.printf("HomeAssistantDiscoveryClient: adding discoverable device: %s...\n", alias);
+  Serial.printf("  topic: %s\nconfig: %s\n", topic.c_str(), message.c_str());
 #endif
 
 

@@ -26,7 +26,7 @@ RF24PowerLevel RF24PowerLevelHelpers::valueFromName(const String& name) {
     }
   }
 
-  Serial.printf_P(PSTR("WARN: tried to fetch unknown RF24 power level: %s, using default.\n"), name.c_str());
+  Serial.printf("WARN: tried to fetch unknown RF24 power level: %s, using default.\n", name.c_str());
 
   return defaultValue();
 }

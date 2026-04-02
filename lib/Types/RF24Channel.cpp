@@ -25,7 +25,7 @@ RF24Channel RF24ChannelHelpers::valueFromName(const String& name) {
     }
   }
 
-  Serial.printf_P(PSTR("WARN: tried to fetch unknown RF24 channel: %s, using default.\n"), name.c_str());
+  Serial.printf("WARN: tried to fetch unknown RF24 channel: %s, using default.\n", name.c_str());
 
   return defaultValue();
 }

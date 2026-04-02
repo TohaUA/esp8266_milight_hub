@@ -662,7 +662,7 @@ void MiLightHttpServer::handleWsEvent(uint8_t num, WStype_t type, uint8_t *paylo
       break;
 
     default:
-      Serial.printf_P(PSTR("Unhandled websocket event: %d\n"), static_cast<uint8_t>(type));
+      Serial.printf("Unhandled websocket event: %d\n", static_cast<uint8_t>(type));
       break;
   }
 }
@@ -1016,7 +1016,7 @@ void MiLightHttpServer::handleCreateBackup(RequestContext &request) {
   backupFile.close();
 
   backupFile = ProjectFS.open(BACKUP_FILE, "r");
-  Serial.printf_P(PSTR("Sending backup file of size %d\n"), backupFile.size());
+  Serial.printf("Sending backup file of size %d\n", backupFile.size());
   server.streamFile(backupFile, APPLICATION_OCTET_STREAM);
 
   ProjectFS.remove(BACKUP_FILE);
@@ -1060,7 +1060,7 @@ void MiLightHttpServer::handleListGroups() {
       client.print(',');
     }
     serializeJson(stateBuffer, client);
-    client.printf_P(PSTR("\r\n"));
+    client.printf("\r\n");
 
     firstGroup = false;
     yield();

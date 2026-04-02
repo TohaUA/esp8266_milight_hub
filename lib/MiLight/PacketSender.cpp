@@ -92,9 +92,9 @@ void PacketSender::sendRepeats(size_t num) {
   size_t len = currentPacket.remoteConfig->packetFormatter->getPacketLength();
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Sending packet (%d repeats): \n"), num);
+  Serial.printf("Sending packet (%d repeats): \n", num);
   for (size_t i = 0; i < len; i++) {
-    Serial.printf_P(PSTR("%02X "), currentPacket.packet[i]);
+    Serial.printf("%02X ", currentPacket.packet[i]);
   }
   Serial.println();
   int iStart = millis();

@@ -30,7 +30,7 @@ void GroupStatePersistence::set(const BulbId &id, const GroupState& state) {
 
   File f = ProjectFS.open(tmpPath, "w");
   if (!f) {
-    Serial.printf_P(PSTR("Failed to open state temp file: %s\n"), tmpPath);
+    Serial.printf("Failed to open state temp file: %s\n", tmpPath);
     return;
   }
   state.dump(f);

@@ -24,20 +24,20 @@ BackupManager::RestoreStatus BackupManager::restoreBackup(Settings& settings, St
 
   // Check the header
   if ((magicHeader & 0xFFFFFF00) != (SETTINGS_MAGIC_HEADER & 0xFFFFFF00)) {
-    Serial.printf_P(PSTR("ERROR: invalid backup file header. expected %08X but got %08X\n"), SETTINGS_MAGIC_HEADER & 0xFFFFFF00, magicHeader & 0xFFFFFF00);
+    Serial.printf("ERROR: invalid backup file header. expected %08X but got %08X\n", SETTINGS_MAGIC_HEADER & 0xFFFFFF00, magicHeader & 0xFFFFFF00);
     return BackupManager::RestoreStatus::INVALID_HEADER;
   }
 
   // Check the version
   if ((magicHeader & 0xFF) != SETTINGS_BACKUP_VERSION) {
-    Serial.printf_P(PSTR("ERROR: invalid settings file version. expected %d but got %d\n"), SETTINGS_BACKUP_VERSION, magicHeader & 0xFF);
+    Serial.printf("ERROR: invalid settings file version. expected %d but got %d\n", SETTINGS_BACKUP_VERSION, magicHeader & 0xFF);
     return BackupManager::RestoreStatus::INVALID_VERSION;
   }
 
   // reset settings to default
   settings = Settings();
 
-  Serial.printf_P(PSTR("Restoring %d byte backup\n"), stream.available());
+  Serial.printf("Restoring %d byte backup\n", stream.available());
   GroupAlias::loadAliases(stream, settings.groupIdAliases);
 
   // read null terminator
@@ -54,7 +54,7 @@ BackupManager::RestoreStatus BackupManager::restoreBackup(Settings& settings, St
     Serial.println(F("Opening settings file failed"));
     return BackupManager::RestoreStatus::INVALID_FILE;
   } else {
-    Serial.printf_P(PSTR("%d bytes remaining in backup\n"), stream.available());
+    Serial.printf("%d bytes remaining in backup\n", stream.available());
     WriteBufferingStream bufferedStream(f, 128);
 
     while (stream.available()) {

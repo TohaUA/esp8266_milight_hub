@@ -234,7 +234,7 @@ bool Settings::loadAliases(Settings &settings) {
     }
     settings.groupIdAliasNextId = maxId + 1;
 
-    printf_P(PSTR("loaded %d aliases\n"), settings.groupIdAliases.size());
+    printf("loaded %d aliases\n", settings.groupIdAliases.size());
 
     return true;
   } else {

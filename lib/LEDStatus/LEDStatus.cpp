@@ -208,7 +208,7 @@ void LEDStatus::_modeToTime(LEDStatus::LEDMode mode, uint16_t& ledOffMs, uint16_
       ledOnMs = 30;
       break;
     default:
-      Serial.printf_P(PSTR("LEDStatus::_modeToTime: Uknown LED mode %d\n"), mode);
+      Serial.printf("LEDStatus::_modeToTime: Uknown LED mode %d\n", mode);
       ledOffMs = 500;
       ledOnMs = 2000;
       break;

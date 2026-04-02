@@ -418,7 +418,7 @@ void postConnectSetup() {
 
   initMilightUdpServers();
 
-  Serial.printf_P(PSTR("Setup complete (version %s)\n"), QUOTE(MILIGHT_HUB_VERSION));
+  Serial.printf("Setup complete (version %s)\n", QUOTE(MILIGHT_HUB_VERSION));
 }
 
 void setup() {
@@ -491,7 +491,7 @@ void setup() {
 
   // We have a saved static IP, let's try and use it.
   if (settings.wifiStaticIP.length() > 0) {
-    Serial.printf_P(PSTR("We have a static IP: %s\n"), settings.wifiStaticIP.c_str());
+    Serial.printf("We have a static IP: %s\n", settings.wifiStaticIP.c_str());
 
     IPAddress _ip, _subnet, _gw;
     _ip.fromString(settings.wifiStaticIP);

@@ -16,7 +16,7 @@ bool V2PacketFormatter::canHandle(const uint8_t *packet, const size_t packetLen)
   V2RFEncoding::decodeV2Packet(packetCopy);
 
 #ifdef DEBUG_PRINTF
-  Serial.printf_P(PSTR("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n"), protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
+  Serial.printf("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n", protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
 #endif
 
   return packetCopy[V2_PROTOCOL_ID_INDEX] == protocolId;
@@ -104,7 +104,7 @@ void V2PacketFormatter::switchMode(const GroupState& currentState, BulbMode desi
       updateColorWhite();
       break;
     default:
-      Serial.printf_P(PSTR("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n"), desiredMode);
+      Serial.printf("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n", desiredMode);
       break;
   }
 

@@ -175,7 +175,7 @@ bool V6MiLightUdpServer::sendResponse(uint16_t sessionId, uint8_t* responseBuffe
   }
 
 #ifdef MILIGHT_UDP_DEBUG
-  printf_P("Sending response to %s:%d\n", session->ipAddr.toString().c_str(), session->port);
+  printf("Sending response to %s:%d\n", session->ipAddr.toString().c_str(), session->port);
 #endif
 
   socket.beginPacket(session->ipAddr, session->port);
@@ -260,7 +260,7 @@ bool V6MiLightUdpServer::matchesPacket(uint8_t* packet1, size_t packet1Len, uint
 
 void V6MiLightUdpServer::handlePacket(uint8_t* packet, size_t packetSize) {
 #ifdef MILIGHT_UDP_DEBUG
-  printf_P("Packet size: %d\n", packetSize);
+  printf("Packet size: %d\n", packetSize);
 #endif
 
   if (MATCHES_PACKET(START_SESSION_COMMAND)) {

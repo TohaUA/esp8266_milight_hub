@@ -204,7 +204,7 @@ bool GroupState::clearField(GroupStateField field) {
       break;
 
     default:
-      Serial.printf_P(PSTR("Attempted to clear unknown field: %d\n"), static_cast<uint8_t>(field));
+      Serial.printf("Attempted to clear unknown field: %d\n", static_cast<uint8_t>(field));
       break;
   }
 
@@ -969,7 +969,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
         break;
 
       default:
-        Serial.printf_P(PSTR("Tried to apply unknown field: %d\n"), static_cast<uint8_t>(field));
+        Serial.printf("Tried to apply unknown field: %d\n", static_cast<uint8_t>(field));
         break;
     }
   }
