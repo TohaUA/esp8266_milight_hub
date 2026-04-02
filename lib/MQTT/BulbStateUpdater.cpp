@@ -25,7 +25,7 @@ void BulbStateUpdater::enqueueUpdate(BulbId bulbId, GroupState& groupState) {
 }
 
 void BulbStateUpdater::loop() {
-  while (canFlush() && staleGroups.size() > 0) {
+  while (canFlush() && staleGroups.size() > 0 && mqttClient.isConnected()) {
     BulbId bulbId = staleGroups.shift();
     GroupState* groupState = stateStore.get(bulbId);
 
