@@ -44,7 +44,7 @@ const MiLightRemoteType MiLightRemoteTypeHelpers::remoteTypeFromString(const Str
   return REMOTE_TYPE_UNKNOWN;
 }
 
-const String MiLightRemoteTypeHelpers::remoteTypeToString(const MiLightRemoteType type) {
+const char* MiLightRemoteTypeHelpers::remoteTypeToString(const MiLightRemoteType type) {
   switch (type) {
     case REMOTE_TYPE_RGBW:
       return REMOTE_NAME_RGBW;
