@@ -277,9 +277,8 @@ protected:
 
       // For booleans, parse string/int
 
-#ifdef ESP8266
-      if (std::is_same_v<bool, T>) {
-                  if (val.is<bool>()) {
+      if (std::is_same<bool, T>::value) {
+        if (val.is<bool>()) {
           var = val.as<bool>();
         } else if (val.is<const char*>()) {
           var = strcmp(val.as<const char*>(), "true") == 0;
@@ -291,21 +290,6 @@ protected:
       } else {
         var = val.as<T>();
       }
-#elif ESP32
-        if (std::is_same<bool, T>::value) {
-            if (val.is<bool>()) {
-                var = val.as<bool>();
-            } else if (val.is<const char*>()) {
-                var = strcmp(val.as<const char*>(), "true") == 0;
-            } else if (val.is<int>()) {
-                var = val.as<int>() == 1;
-            } else {
-                var = false;
-            }
-        } else {
-            var = val.as<T>();
-        }
-#endif
 
     }
   }
