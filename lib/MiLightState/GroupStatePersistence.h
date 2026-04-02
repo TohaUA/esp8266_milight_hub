@@ -11,7 +11,7 @@ public:
   void clear(const BulbId& id);
 
 private:
-
+  static void ensureDirectory();
   static char* buildFilename(const BulbId& id, char* buffer);
 };
 

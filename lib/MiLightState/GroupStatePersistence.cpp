@@ -20,10 +20,22 @@ void GroupStatePersistence::get(const BulbId &id, GroupState& state) {
   }
 }
 
+void GroupStatePersistence::ensureDirectory() {
+  static bool dirCreated = false;
+  if (!dirCreated) {
+#ifdef ESP32
+    ProjectFS.mkdir("/group_states");
+#endif
+    dirCreated = true;
+  }
+}
+
 void GroupStatePersistence::set(const BulbId &id, const GroupState& state) {
   char path[30];
   memset(path, 0, 30);
   buildFilename(id, path);
+
+  ensureDirectory();
 
   char tmpPath[35];
   snprintf(tmpPath, sizeof(tmpPath), "%s.tmp", path);
