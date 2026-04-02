@@ -2,29 +2,33 @@ name: Build
 
 on: [push]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-            .pio/build
-          key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v4
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
         run: pio run
 
-      - name: Build docs
+      - name: Validate OpenAPI spec
         run: |
-          npm install -g swagger-cli redoc-cli
+          npm install -g @apidevtools/swagger-cli@4
           swagger-cli validate ./docs/openapi.yaml
