@@ -1102,6 +1102,7 @@ void MiLightHttpServer::handleBatchUpdateGroups(RequestContext& request) {
         bulbId.groupId
       );
       handleRequest(stateUpdate);
+      yield();
     }
   }
 
