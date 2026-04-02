@@ -574,6 +574,19 @@ void loop() {
       lastReconnectAttempt = millis();
     }
   }
+
+  // Heap monitoring
+  static unsigned long lastHeapCheck = 0;
+  if (millis() - lastHeapCheck > 60000) {
+    uint32_t freeHeap = ESP.getFreeHeap();
+    if (freeHeap < 4096) {
+      Serial.printf_P(PSTR("CRITICAL: Free heap %u bytes, restarting\n"), freeHeap);
+      ESP.restart();
+    } else if (freeHeap < 8192) {
+      Serial.printf_P(PSTR("WARNING: Low free heap: %u bytes\n"), freeHeap);
+    }
+    lastHeapCheck = millis();
+  }
 }
 
 #endif
