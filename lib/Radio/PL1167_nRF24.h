@@ -10,6 +10,10 @@
 #endif
 
 #include "RF24.h"
+// RF24 >=1.4 redefines printf_P as a macro that breaks other libraries
+#ifdef printf_P
+#undef printf_P
+#endif
 
 // #define DEBUG_PRINTF
 
