@@ -1,6 +1,6 @@
 #include <PacketFormatter.h>
 
-static uint8_t* PACKET_BUFFER = new uint8_t[PACKET_FORMATTER_BUFFER_SIZE];
+static uint8_t PACKET_BUFFER[PACKET_FORMATTER_BUFFER_SIZE];
 
 PacketStream::PacketStream()
     : packetStream(PACKET_BUFFER),
