@@ -556,9 +556,15 @@ void MiLightHttpServer::handleUpdateGroup(RequestContext& request) {
   String _deviceIds = request.pathVariables.get(GroupStateFieldNames::DEVICE_ID);
   String _groupIds = request.pathVariables.get(GroupStateFieldNames::GROUP_ID);
   String _remoteTypes = request.pathVariables.get("type");
-  char deviceIds[_deviceIds.length() + 1];
-  char groupIds[_groupIds.length() + 1];
-  char remoteTypes[_remoteTypes.length() + 1];
+  const size_t MAX_PATH_VAR = 64;
+  if (_deviceIds.length() >= MAX_PATH_VAR || _groupIds.length() >= MAX_PATH_VAR || _remoteTypes.length() >= MAX_PATH_VAR) {
+    request.response.setCode(400);
+    request.response.json[F("error")] = F("Path variable too long");
+    return;
+  }
+  char deviceIds[MAX_PATH_VAR];
+  char groupIds[MAX_PATH_VAR];
+  char remoteTypes[MAX_PATH_VAR];
   strcpy(remoteTypes, _remoteTypes.c_str());
   strcpy(groupIds, _groupIds.c_str());
   strcpy(deviceIds, _deviceIds.c_str());
