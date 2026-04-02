@@ -43,7 +43,6 @@ public:
 private:
   GroupStateCache cache;
   GroupStatePersistence persistence;
-  LinkedList<BulbId> evictedIds;
   const size_t flushRate;
   unsigned long lastFlush;
 

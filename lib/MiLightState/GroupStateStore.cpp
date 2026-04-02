@@ -99,15 +99,25 @@ void GroupStateStore::clear(const BulbId& bulbId) {
 
 void GroupStateStore::trackEviction() {
   if (cache.isFull()) {
-    evictedIds.add(cache.getLru());
+    // Walk to the last node (LRU) to check if it's dirty
+    ListNode<GroupCacheNode*>* cur = cache.getHead();
+    while (cur != NULL && cur->next != NULL) {
+      cur = cur->next;
+    }
+
+    if (cur != NULL && cur->data->state.isDirty()) {
+      // Persist dirty state before eviction so it's not lost
+      persistence.set(cur->data->id, cur->data->state);
+    }
 
 #ifdef STATE_DEBUG
-    BulbId bulbId = evictedIds.getLast();
+    BulbId bulbId = cache.getLru();
+    const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(bulbId.deviceType);
     printf(
       "Evicting from cache: 0x%04X / %d / %s\n",
       bulbId.deviceId,
       bulbId.groupId,
-      MiLightRemoteConfig::fromType(bulbId.deviceType)->name.c_str()
+      config ? config->name.c_str() : "unknown"
     );
 #endif
   }
@@ -132,11 +142,6 @@ bool GroupStateStore::flush() {
 #endif
 
     curr = curr->next;
-    anythingFlushed = true;
-  }
-
-  while (evictedIds.size() > 0 && !anythingFlushed) {
-    persistence.clear(evictedIds.shift());
     anythingFlushed = true;
   }
 
