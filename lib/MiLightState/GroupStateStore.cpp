@@ -58,6 +58,10 @@ GroupState* GroupStateStore::set(const BulbId &id, const GroupState& state) {
   if (id.groupId == 0) {
     const MiLightRemoteConfig* remote = MiLightRemoteConfig::fromType(id.deviceType);
 
+    if (remote == NULL) {
+      return storedState;
+    }
+
 #ifdef STATE_DEBUG
     Serial.printf_P(PSTR("Fanning out group 0 state for device ID 0x%04X (%d groups in total)\n"), id.deviceId, remote->numGroups);
     state.debugState("group 0 state = ");
