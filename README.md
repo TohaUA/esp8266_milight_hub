@@ -1,21 +1,25 @@
 # esp8266_milight_hub [![Build](https://github.com/TohaUA/esp8266_milight_hub/actions/workflows/build.yaml/badge.svg)](https://github.com/TohaUA/esp8266_milight_hub/actions/workflows/build.yaml) [![License][shield-license]][info-license]
 
-This is a replacement for a Milight/LimitlessLED remote/gateway hosted on an ESP8266. Leverages [Henryk Plötz's awesome reverse-engineering work](https://hackaday.io/project/5888-reverse-engineering-the-milight-on-air-protocol).
+This is a fork of [sidoh/esp8266_milight_hub](https://github.com/sidoh/esp8266_milight_hub) — a replacement for a Milight/LimitlessLED WiFi gateway hosted on an ESP8266/ESP32. Leverages [Henryk Plötz's awesome reverse-engineering work](https://hackaday.io/project/5888-reverse-engineering-the-milight-on-air-protocol).
 
 [Milight bulbs](https://www.amazon.com/Mi-light-Dimmable-RGBWW-Spotlight-Smart/dp/B01LPRQ4BK/r) are cheap smart bulbs that are controllable with an undocumented 2.4 GHz protocol. In order to control them, you either need a [remote](https://www.amazon.com/Mi-light-Dimmable-RGBWW-Spotlight-Smart/dp/B01LCSALV6/r?th=1) ($13), which allows you to control them directly, or a [WiFi gateway](http://futlight.com/productlist.aspx?typeid=125) ($30), which allows you to control them with a mobile app or a [UDP protocol](https://github.com/Fantasmos/LimitlessLED-DevAPI).
 
 This project is a replacement for the wifi gateway.
 
-[This guide](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) on my blog details setting one of these up.
-
 ## Features
 
-* Fully-featured Web UI
-* MQTT support
-* UDP gateway
-* REST API
-* Server-side tracking of device state.
-* Passive listening for intercepted packets from other Milight devices.
+* Fully-featured Web UI (React 18 + TypeScript + Tailwind)
+* MQTT support with HomeAssistant auto-discovery
+* MQTT state sync on reconnect (`POST /mqtt/sync`)
+* UDP gateway (v5/v6 protocol emulation)
+* REST API ([OpenAPI spec](docs/openapi.yaml))
+* Server-side tracking of device state
+* Passive listening for intercepted packets from other Milight devices
+* Full ESP32 support
+* Telnet debug console (port 23) with live log streaming
+* WiFi auto-reconnect on disconnect
+* LittleFS with atomic writes (power-loss safe)
+* Heap monitoring with auto-restart safety valve
 
 ## Quick Start
 
@@ -65,13 +69,11 @@ platformio run -e d1_mini --target upload
 
 (make sure to substitute `d1_mini` with the board that you're using.)
 
-Alternatively, you can download a pre-compiled firmware image from the [releases](https://github.com/sidoh/esp8266_milight_hub/releases). This can be used with [`esptool.py`](https://github.com/espressif/esptool):
+Alternatively, you can download a pre-compiled firmware image from the [releases](https://github.com/TohaUA/esp8266_milight_hub/releases). This can be used with [`esptool.py`](https://github.com/espressif/esptool):
 
 ```
 esptool.py write_flash 0x0 <firmware_file.bin>
 ```
-
-Make sure you read instructions
 
 #### ESP32
 
@@ -114,7 +116,7 @@ The UI should look like this:
 
 Add devices using the "+" button. Use the "Sniffer" tab to intercept packets from existing remotes or milight devices if you wish to spoof their device IDs.
 
-More details on this are [in the wiki](https://github.com/sidoh/esp8266_milight_hub/wiki/Pairing-new-bulbs).
+More details on this are [in the wiki](https://github.com/TohaUA/esp8266_milight_hub/wiki/Pairing-new-bulbs).
 
 ### (Optional) HomeAssistant
 
@@ -139,8 +141,7 @@ Model #|Name|Compatible Bulbs
 
 Other remotes or bulbs, but have not been tested.
 
-
-If it does not work as expected see [Troubleshooting](https://github.com/sidoh/esp8266_milight_hub/wiki/Troubleshooting).
+If it does not work as expected see [Troubleshooting](https://github.com/TohaUA/esp8266_milight_hub/wiki/Troubleshooting).
 
 ## Device Aliases
 
@@ -153,12 +154,7 @@ You can configure aliases or labels for a given _(Device Type, Device ID, Group 
 
 ## REST API
 
-Generated API documentation is available here:
-
-* [latest version](https://sidoh.github.io/esp8266_milight_hub/branches/latest)
-* [all versions](https://sidoh.github.io/esp8266_milight_hub)
-
-API documentation is generated from the [OpenAPI spec](docs/openapi.yaml) using redoc.
+API documentation is generated from the [OpenAPI spec](docs/openapi.yaml).
 
 ## MQTT
 
@@ -167,6 +163,16 @@ To configure your ESP to integrate with MQTT, fill out the following settings:
 1. `mqtt_server`- IP or hostname should work. Specify a port with standard syntax (e.g., "mymqttbroker.com:1884").
 1. (if necessary) `mqtt_username` and `mqtt_password`
 1. (optional) topic patterns. These come pre-configured with suitable values, but you can customize them if you'd like. These control which topics the device will publish and subscribe to to receive commands and publish updates.
+
+### MQTT State Sync
+
+If MQTT state becomes out of sync with the hub (e.g., after broker restart), you can force a full republish of all known state:
+
+```bash
+curl -X POST http://<device-ip>/mqtt/sync
+```
+
+State is also automatically synced on every MQTT reconnection.
 
 ### Topics
 
@@ -221,10 +227,6 @@ The UDP protocol is documented [in this handy github archive](https://github.com
 
 Transitions between two given states are supported.  Depending on how transition commands are being issued, the duration and smoothness of the transition are both configurable.  There are a few ways to use transitions:
 
-#### RESTful `/transitions` routes
-
-These routes are fully documented in the [REST API documentation](https://sidoh.github.io/esp8266_milight_hub/branches/latest/#tag/Transitions).
-
 #### `transition` field when issuing commands
 
 When you issue a command to a bulb either via REST or MQTT, you can include a `transition` field.  The value of this field specifies the duration of the transition, in seconds (non-integer values are supported).
@@ -252,6 +254,22 @@ will transition from whatever the current brightness is to `brightness=255` over
   ```
   will turn the bulb on, immediately set the brightness to 0, and then transition to brightness=255 over 10 seconds.  If you specify a brightness value, the transition will stop there instead of 255.
 
+## Telnet Debug Console
+
+A telnet server runs on port 23. All firmware log output is streamed to connected telnet clients in real time. Interactive commands are available:
+
+```bash
+telnet <device-ip> 23
+```
+
+| Command | Description |
+|---------|-------------|
+| `heap` | Show free heap memory |
+| `status` | Show full device status JSON |
+| `uptime` | Show uptime in milliseconds |
+| `sync` | Trigger MQTT state sync |
+| `help` | List available commands |
+
 ## LED Status
 
 Some ESP boards have a built-in LED, on pin #2.  This LED will flash to indicate the current status of the hub:
@@ -270,52 +288,30 @@ Note that you must restart the hub to affect the change in "enable_solid_led".
 
 You can configure the LED pin from the web console.  Note that pin means the GPIO number, not the D number ... for example, D1 is actually GPIO5 and therefore its pin 5.  If you specify the pin as a negative number, it will invert the LED signal (the built-in LED on pin 2 (D4) is inverted, so the default is -2).
 
-If you want to wire up your own LED you can connect it to D1/GPIO5. Put a wire from D1 to one side of a 220 ohm resistor. On the other side, connect it to the positive side (the longer wire) of a 3.3V LED.  Then connect the negative side of the LED (the shorter wire) to ground.  If you use a different voltage LED, or a high current LED, you will need to add a driver circuit.
-
-Another option is to use an external LED parallel to the (inverted) internal one, this way it will mirror the internal LED without configuring a new LED pin in the UI. To do this connect the (short) GND pin of your LED to D4. The longer one to a 220 ohm resistor and finally the other side of the resistor to a 3V3 pin.
-
 ## Development
 
 This project is developed and built using [PlatformIO](https://platformio.org/).
 
-The Web UI is [documented here](./web/README.md).
+The Web UI is [documented here](./web/README.md). Architecture documentation is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 #### Running tests
 
-On-board unit tests are available using PlatformIO.  Run unit tests with this command:
+On-board unit tests are available using PlatformIO. Tests are in `test/test_embedded/` and run on actual hardware:
 
 ```
-pio test -e d1_mini
+pio test -e nodemcuv2 --upload-port <serial-port> --test-port <serial-port>
 ```
-
-substituting `d1_mini` for the environment of your choice.
 
 #### Running integration tests
 
 A remote integration test suite built using rspec is available under [`./test/remote`](test/remote).
 
-## Ready-Made Hub
-
-h4nc (h4nc.zigbee(a)gmail.com) created a PCB and 3D-printable case for espMH.  He's offering ready-made versions.  Please get in touch with him at the aforementioned email address for further information.
-
-Find more information from the [espmh_pcb](https://github.com/sidoh/espmh_pcb) repository.
-
 ## Acknowledgements
+
+This is a fork of [sidoh/esp8266_milight_hub](https://github.com/sidoh/esp8266_milight_hub). Original project by [@sidoh](https://github.com/sidoh).
 
 * @WoodsterDK added support for LT8900 radios.
 * @cmidgley contributed many substantial features to the 1.7 release.
 
-[info-license]:   https://github.com/sidoh/esp8266_milight_hub/blob/master/LICENSE
+[info-license]:   https://github.com/TohaUA/esp8266_milight_hub/blob/main/LICENSE
 [shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
-
-## Donating
-
-If the project brings you happiness or utility, it's more than enough for me to hear those words.
-
-If you're feeling especially generous, and are open to a charitable donation, that'd make me very happy.  Here are some whose mission I support (in no particular order):
-
-* [Water.org](https://www.water.org)
-* [Brain & Behavior Research Foundation](https://www.bbrfoundation.org/)
-* [Electronic Frontier Foundation](https://www.eff.org/)
-* [Girls Who Code](https://girlswhocode.com/)
-* [San Francisco Animal Care & Control](http://www.sfanimalcare.org/make-a-donation/)
