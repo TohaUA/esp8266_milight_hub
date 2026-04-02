@@ -66,5 +66,6 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
 }
 
 inline bool BulbStateUpdater::canFlush() const {
-  return enabled && (millis() > (lastFlush + settings.mqttStateRateLimit) && millis() > (lastQueue + settings.mqttDebounceDelay));
+  unsigned long now = millis();
+  return enabled && ((now - lastFlush) >= settings.mqttStateRateLimit) && ((now - lastQueue) >= settings.mqttDebounceDelay);
 }

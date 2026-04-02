@@ -146,7 +146,7 @@ bool GroupStateStore::flush() {
 void GroupStateStore::limitedFlush() {
   unsigned long now = millis();
 
-  if ((lastFlush + flushRate) < now) {
+  if ((now - lastFlush) >= flushRate) {
     if (flush()) {
       lastFlush = now;
     }
