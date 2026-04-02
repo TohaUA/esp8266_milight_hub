@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <CircularBuffer.h>
 #include <MiLightRadioConfig.h>
 #include <MiLightRemoteConfig.h>
@@ -21,16 +19,13 @@ public:
   PacketQueue();
 
   void push(const uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride);
-  std::shared_ptr<QueuedPacket> pop();
+  const QueuedPacket* currentPacket() const;
+  void cyclePacket();
   bool isEmpty() const;
   size_t size() const;
   size_t getDroppedPacketCount() const;
 
 private:
   size_t droppedPackets;
-
-  std::shared_ptr<QueuedPacket> checkoutPacket();
-  void checkinPacket(std::shared_ptr<QueuedPacket> packet);
-
-  LinkedList<std::shared_ptr<QueuedPacket>> queue;
+  CircularBuffer<QueuedPacket, MILIGHT_MAX_QUEUED_PACKETS> buffer;
 };

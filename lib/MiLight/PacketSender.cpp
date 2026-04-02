@@ -50,7 +50,7 @@ void PacketSender::nextPacket() {
 #ifdef DEBUG_PRINTF
   Serial.printf("Switching to next packet, %d packets in queue\n", queue.size());
 #endif
-  currentPacket = queue.pop();
+  currentPacket = queue.currentPacket();
 
   if (currentPacket->repeatsOverride > 0) {
     packetRepeatsRemaining = currentPacket->repeatsOverride;
@@ -71,8 +71,12 @@ void PacketSender::handleCurrentPacket() {
   packetRepeatsRemaining -= numToSend;
 
   // If we're done sending this packet, fire the sent packet callback
-  if (packetRepeatsRemaining == 0 && packetSentHandler != nullptr) {
-    packetSentHandler(currentPacket->packet, *currentPacket->remoteConfig);
+  if (packetRepeatsRemaining == 0) {
+    if (packetSentHandler != nullptr) {
+      packetSentHandler(currentPacket->packet, *currentPacket->remoteConfig);
+    }
+    queue.cyclePacket();
+    currentPacket = nullptr;
   }
 }
 
