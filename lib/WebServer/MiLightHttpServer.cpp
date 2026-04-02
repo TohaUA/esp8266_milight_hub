@@ -181,7 +181,7 @@ void MiLightHttpServer::handleSystemPost(RequestContext& request) {
       delay(100);
 #ifdef ESP8266
       ESP.eraseConfig();
-#elif ESP32
+#elif defined(ESP32)
       Serial.println(F("Wifi reset..."));
       WiFi.disconnect(true, true);
       delay(1000);
@@ -327,7 +327,7 @@ void MiLightHttpServer::handleFirmwareUpload() {
     }
   }
   yield();
-#elif ESP32
+#elif defined(ESP32)
   HTTPUpload &upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
     Serial.printf("Update: %s\n", upload.filename.c_str());

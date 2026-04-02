@@ -2,7 +2,7 @@
 #include <Size.h>
 #ifdef ESP8266
   #include <ESP8266WiFi.h>
-#elif ESP32
+#elif defined(ESP32)
   #include <WiFi.h>
 #endif
 
@@ -99,7 +99,7 @@ void MiLightDiscoveryServer::sendResponse(char* buffer) {
   socket.beginPacket(socket.remoteIP(), socket.remotePort());
 #ifdef ESP8266
     socket.write(buffer);
-#elif ESP32
+#elif defined(ESP32)
     socket.write(reinterpret_cast<uint8_t*>(buffer), strnlen(buffer, 40));
 #endif
   socket.endPacket();

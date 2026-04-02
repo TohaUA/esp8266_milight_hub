@@ -28,7 +28,7 @@
 #ifdef ESP8266
   #include <ESP8266mDNS.h>
   #include <ESP8266SSDP.h>
-#elif ESP32
+#elif defined(ESP32)
   #include "ESP32SSDP.h"
   #include <esp_wifi.h>
   #include <ESPmDNS.h>
@@ -310,7 +310,7 @@ switch (settings.wifiMode) {
     break;
 }
   WiFi.setPhyMode(wifiPhyMode);
-#elif ESP32
+#elif defined(ESP32)
   switch (settings.wifiMode) {
     case WifiMode::B:
       esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B);

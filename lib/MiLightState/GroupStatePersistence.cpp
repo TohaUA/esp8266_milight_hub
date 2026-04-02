@@ -4,7 +4,7 @@
 
 #ifdef ESP8266
     static const char FILE_PREFIX[] = "group_states/";
-#elif ESP32
+#elif defined(ESP32)
     static const char FILE_PREFIX[] = "/group_states/";
 #endif
 

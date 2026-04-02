@@ -5,7 +5,7 @@ uint32_t getESPId()
 {
     return ESP.getChipId();
 }
-#elif ESP32
+#elif defined(ESP32)
 uint32_t getESPId()
 {
     uint32_t id = 0;
