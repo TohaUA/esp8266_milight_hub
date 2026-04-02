@@ -1,5 +1,6 @@
 #include <RichHttpServer.h>
 #include <MiLightClient.h>
+#include <BulbStateUpdater.h>
 #include <Settings.h>
 #include <WebSocketsServer.h>
 #include <GroupStateStore.h>
@@ -63,6 +64,7 @@ public:
   void on(const char* path, HTTPMethod method, THandlerFunction handler);
   void handlePacketSent(uint8_t* packet, const MiLightRemoteConfig& config, const BulbId& bulbId, const JsonObject& result);
   WiFiClient client();
+  void setBulbStateUpdater(BulbStateUpdater* updater) { bulbStateUpdater = updater; }
 
 protected:
 
@@ -112,6 +114,9 @@ protected:
 
   void handleCreateBackup(RequestContext& request);
   void handleRestoreBackup(RequestContext& request);
+
+  void handleSyncMqtt(RequestContext& request);
+  BulbStateUpdater* bulbStateUpdater = nullptr;
 
   void handleRequest(const JsonObject& request);
   void handleWsEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);

@@ -126,6 +126,10 @@ void MiLightHttpServer::begin() {
     .on(HTTP_DELETE, std::bind(&MiLightHttpServer::handleDeleteAlias, this, _1));
 
   server
+    .buildHandler("/mqtt/sync")
+    .on(HTTP_POST, [this](RequestContext& request) { handleSyncMqtt(request); });
+
+  server
     .buildHandler("/firmware")
     .handleOTA();
 
@@ -985,6 +989,16 @@ void MiLightHttpServer::saveSettings() {
   if (this->settingsSavedHandler) {
     this->settingsSavedHandler();
   }
+}
+
+void MiLightHttpServer::handleSyncMqtt(RequestContext& request) {
+  if (bulbStateUpdater == NULL) {
+    request.response.setCode(503);
+    request.response.json[F("error")] = F("MQTT not configured");
+    return;
+  }
+  bulbStateUpdater->syncAll();
+  request.response.json[F("success")] = true;
 }
 
 void MiLightHttpServer::handleRestoreBackup(RequestContext &request) {

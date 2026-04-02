@@ -325,6 +325,9 @@ void applySettings() {
     });
 
     bulbStateUpdater = new BulbStateUpdater(settings, *mqttClient, *stateStore);
+    if (httpServer != NULL) {
+      httpServer->setBulbStateUpdater(bulbStateUpdater);
+    }
   }
 
   initMilightUdpServers();
@@ -448,6 +451,10 @@ void postConnectSetup() {
   httpServer->onAbout(aboutHandler);
   httpServer->on("/description.xml", HTTP_GET, []() { SSDP.schema(httpServer->client()); });
   httpServer->begin();
+
+  if (bulbStateUpdater != NULL) {
+    httpServer->setBulbStateUpdater(bulbStateUpdater);
+  }
 
   transitions.addListener(
       [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
