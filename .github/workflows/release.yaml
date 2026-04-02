@@ -5,29 +5,33 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - run: git fetch --tags --force origin
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
-            .pio/build
-          key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v4
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: Validate docs
         run: |
-          npm install -g redoc-cli
+          npm install -g redoc-cli@0.13
           redoc-cli validate ./docs/openapi.yaml
 
       - name: Install PlatformIO Core
@@ -42,7 +46,7 @@ jobs:
           ./.prepare_docs
 
       - name: Upload production artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
@@ -50,47 +54,52 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Download production artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
 
       - name: Create Release
-        uses: actions/github-script@v2
+        uses: actions/github-script@v7
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             console.log('environment', process.versions);
-            
+
             const fs = require('fs').promises;
-            
+
             const { repo: { owner, repo }, sha } = context;
             console.log({ owner, repo, sha });
 
-            const release = await github.repos.createRelease({
+            const tagName = process.env.GITHUB_REF_NAME;
+            console.log('Creating release for tag:', tagName);
+
+            const release = await github.rest.repos.createRelease({
               owner, repo,
-              name: process.env.GITHUB_REF_NAME,
+              name: tagName,
               body: await fs.readFile('./dist/release-notes.txt', 'utf8'),
-              tag_name: process.env.GITHUB_REF,
+              tag_name: tagName,
               draft: true,
               target_commitish: sha
             });
 
             console.log('created release', { release });
-        
+
             for (let file of await fs.readdir('dist')) {
               if (file.endsWith('.bin')) {
                 console.log('uploading', file);
 
-                await github.repos.uploadReleaseAsset({
+                await github.rest.repos.uploadReleaseAsset({
                   owner, repo,
                   release_id: release.data.id,
                   name: file,
                   data: await fs.readFile(`./dist/${file}`)
-                });            
+                });
               }
             }
 
@@ -98,7 +107,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    # Deploy to the github-pages environment
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -107,10 +115,10 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download production artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
@@ -118,4 +126,4 @@ jobs:
       - name: Release docs
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: dist/docs # The folder the action should deploy.
+          folder: dist/docs
