@@ -74,6 +74,7 @@ void MqttClient::begin() {
 bool MqttClient::connect() {
   char nameBuffer[30];
   sprintf_P(nameBuffer, PSTR("milight-hub-%u"), getESPId());
+  String lwtMessage = generateConnectionStatusMessage(STATUS_LWT_DISCONNECTED);
 
 #ifdef MQTT_DEBUG
     Serial.println(F("MqttClient - connecting using name"));
@@ -88,7 +89,7 @@ bool MqttClient::connect() {
       settings.mqttClientStatusTopic.c_str(),
       2,
       true,
-      generateConnectionStatusMessage(STATUS_LWT_DISCONNECTED).c_str()
+      lwtMessage.c_str()
     );
   } else if (settings.mqttUsername.length() > 0) {
     return mqttClient.connect(
@@ -102,7 +103,7 @@ bool MqttClient::connect() {
       settings.mqttClientStatusTopic.c_str(),
       2,
       true,
-      generateConnectionStatusMessage(STATUS_LWT_DISCONNECTED).c_str()
+      lwtMessage.c_str()
     );
   } else {
     return mqttClient.connect(nameBuffer);
