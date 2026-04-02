@@ -40,7 +40,7 @@ void HomeAssistantDiscoveryClient::removeConfig(const BulbId& bulbId) {
 
 void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bulbId) {
   String topic = buildTopic(bulbId);
-  DynamicJsonDocument config(1024);
+  JsonDocument config;
 
   // Unique ID for this device + alias combo
   char uniqueIdBuffer[30];
