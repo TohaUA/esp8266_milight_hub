@@ -223,7 +223,7 @@ const FirmwareSection: React.FC<{
     setIsChecking(true);
     try {
       const response = await fetch(
-        "https://api.github.com/repos/sidoh/esp8266_milight_hub/releases/latest"
+        "https://api.github.com/repos/TohaUA/esp8266_milight_hub/releases/latest"
       );
       const data = await response.json();
       setLatestVersionInfo({
