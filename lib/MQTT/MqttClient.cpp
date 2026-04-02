@@ -39,9 +39,11 @@ MqttClient::MqttClient(Settings& settings, MiLightClient*& milightClient)
 }
 
 MqttClient::~MqttClient() {
-  String aboutStr = generateConnectionStatusMessage(STATUS_DISCONNECTED);
-  mqttClient.publish(settings.mqttClientStatusTopic.c_str(), aboutStr.c_str(), true);
-  mqttClient.disconnect();
+  if (mqttClient.connected()) {
+    String aboutStr = generateConnectionStatusMessage(STATUS_DISCONNECTED);
+    mqttClient.publish(settings.mqttClientStatusTopic.c_str(), aboutStr.c_str(), true);
+    mqttClient.disconnect();
+  }
   delete[] this->domain;
 }
 
@@ -60,6 +62,7 @@ void MqttClient::begin() {
 #endif
 
   mqttClient.setServer(this->domain, settings.mqttPort());
+  mqttClient.setSocketTimeout(2);
   mqttClient.setCallback(
     [this](char* topic, byte* payload, int length) {
       this->publishCallback(topic, payload, length);
