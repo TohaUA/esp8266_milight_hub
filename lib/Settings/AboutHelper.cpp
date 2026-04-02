@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 String AboutHelper::generateAboutString(bool abbreviated) {
-  DynamicJsonDocument buffer(1024);
+  JsonDocument buffer;
 
   generateAboutObject(buffer, abbreviated);
 

@@ -37,7 +37,7 @@ void BulbStateUpdater::loop() {
 }
 
 inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
-  StaticJsonDocument<MILIGHT_MQTT_JSON_BUFFER_SIZE> json;
+  JsonDocument json;
   JsonObject message = json.to<JsonObject>();
   state.applyState(message, bulbId, settings.groupStateFields);
 

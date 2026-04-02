@@ -295,7 +295,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
     return;
   }
 
-  StaticJsonDocument<400> buffer;
+  JsonDocument buffer;
   DeserializationError err = deserializeJson(buffer, cstrPayload);
   if (err) {
     Serial.printf_P(PSTR("MqttClient - JSON parse error: %s\n"), err.c_str());
@@ -351,7 +351,7 @@ String MqttClient::generateConnectionStatusMessage(const char* connectionStatus)
       return "disconnected";
     }
   } else {
-    StaticJsonDocument<256> json;
+    JsonDocument json;
     json[GroupStateFieldNames::STATUS] = connectionStatus;
 
     // Fill other fields

@@ -23,7 +23,7 @@ void run_packet_test(uint8_t* packet, PacketFormatter* packetFormatter, const Bu
   GroupStateStore stateStore(10, 0);
   Settings settings;
   RgbCctPacketFormatter formatter;
-  DynamicJsonDocument doc(1024);  // Remplace DynamicJsonBuffer par DynamicJsonDocument
+  JsonDocument doc;
   JsonObject result = doc.to<JsonObject>();  // Crée un JsonObject à partir de doc
 
   packetFormatter->prepare(0, 0);

@@ -111,7 +111,7 @@ void initMilightUdpServers() {
  * is read.
  */
 void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
-  StaticJsonDocument<200> buffer;
+  JsonDocument buffer;
   JsonObject result = buffer.to<JsonObject>();
 
   BulbId bulbId = config.packetFormatter->parsePacket(packet, result);
@@ -406,7 +406,7 @@ void postConnectSetup() {
 
   transitions.addListener(
       [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
-          StaticJsonDocument<100> buffer;
+          JsonDocument buffer;
 
           const char* fieldName = GroupStateFieldHelpers::getFieldName(field);
           buffer[fieldName] = value;

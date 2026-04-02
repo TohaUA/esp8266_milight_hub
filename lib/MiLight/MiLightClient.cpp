@@ -458,7 +458,7 @@ void MiLightClient::handleCommand(JsonVariant command) {
   } else if (strcmp(cmdName, MiLightCommandNames::TOGGLE) == 0) {
     this->toggleStatus();
   } else if (strcmp(cmdName, MiLightCommandNames::TRANSITION) == 0) {
-    StaticJsonDocument<100> fakedoc;
+    JsonDocument fakedoc;
     this->handleTransition(args, fakedoc);
   }
 }
