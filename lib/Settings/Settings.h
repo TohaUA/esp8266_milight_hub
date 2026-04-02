@@ -44,7 +44,7 @@
 #endif
 
 #ifndef MILIGHT_MAX_STALE_MQTT_GROUPS
-#define MILIGHT_MAX_STALE_MQTT_GROUPS 10
+#define MILIGHT_MAX_STALE_MQTT_GROUPS 30
 #endif
 
 #define SETTINGS_FILE  "/config.json"

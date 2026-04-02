@@ -64,6 +64,19 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
   lastFlush = millis();
 }
 
+void BulbStateUpdater::syncAll() {
+  if (!mqttClient.isConnected()) {
+    return;
+  }
+
+  ListNode<GroupCacheNode*>* cur = stateStore.getCacheHead();
+  while (cur != NULL) {
+    flushGroup(cur->data->id, cur->data->state);
+    cur = cur->next;
+    yield();
+  }
+}
+
 inline bool BulbStateUpdater::canFlush() const {
   unsigned long now = millis();
   return enabled && ((now - lastFlush) >= settings.mqttStateRateLimit) && ((now - lastQueue) >= settings.mqttDebounceDelay);

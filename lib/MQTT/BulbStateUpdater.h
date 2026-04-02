@@ -22,6 +22,7 @@ public:
   void loop();
   void enable();
   void disable();
+  void syncAll();
 
 private:
   Settings& settings;

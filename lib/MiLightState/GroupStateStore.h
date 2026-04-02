@@ -28,6 +28,8 @@ public:
 
   void clear(const BulbId& id);
 
+  ListNode<GroupCacheNode*>* getCacheHead() { return cache.getHead(); }
+
   /*
    * Flushes all states to persistent storage.  Returns true iff anything was
    * flushed.
