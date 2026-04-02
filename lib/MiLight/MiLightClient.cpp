@@ -412,7 +412,7 @@ void MiLightClient::handleCommands(JsonArray commands) {
 }
 
 void MiLightClient::handleCommand(JsonVariant command) {
-  String cmdName;
+  const char* cmdName = NULL;
   JsonObject args;
 
   if (command.is<JsonObject>()) {
@@ -423,37 +423,39 @@ void MiLightClient::handleCommand(JsonVariant command) {
     cmdName = command.as<const char*>();
   }
 
-  if (cmdName == MiLightCommandNames::UNPAIR) {
+  if (cmdName == NULL) return;
+
+  if (strcmp(cmdName, MiLightCommandNames::UNPAIR) == 0) {
     this->unpair();
-  } else if (cmdName == MiLightCommandNames::PAIR) {
+  } else if (strcmp(cmdName, MiLightCommandNames::PAIR) == 0) {
     this->pair();
-  } else if (cmdName == MiLightCommandNames::SET_WHITE) {
+  } else if (strcmp(cmdName, MiLightCommandNames::SET_WHITE) == 0) {
     this->updateColorWhite();
-  } else if (cmdName == MiLightCommandNames::NIGHT_MODE) {
+  } else if (strcmp(cmdName, MiLightCommandNames::NIGHT_MODE) == 0) {
     this->enableNightMode();
-  } else if (cmdName == MiLightCommandNames::LEVEL_UP) {
+  } else if (strcmp(cmdName, MiLightCommandNames::LEVEL_UP) == 0) {
     this->increaseBrightness();
-  } else if (cmdName == MiLightCommandNames::LEVEL_DOWN) {
+  } else if (strcmp(cmdName, MiLightCommandNames::LEVEL_DOWN) == 0) {
     this->decreaseBrightness();
-  } else if (cmdName == "brightness_up") {
+  } else if (strcmp(cmdName, "brightness_up") == 0) {
     this->increaseBrightness();
-  } else if (cmdName == "brightness_down") {
+  } else if (strcmp(cmdName, "brightness_down") == 0) {
     this->decreaseBrightness();
-  } else if (cmdName == MiLightCommandNames::TEMPERATURE_UP) {
+  } else if (strcmp(cmdName, MiLightCommandNames::TEMPERATURE_UP) == 0) {
     this->increaseTemperature();
-  } else if (cmdName == MiLightCommandNames::TEMPERATURE_DOWN) {
+  } else if (strcmp(cmdName, MiLightCommandNames::TEMPERATURE_DOWN) == 0) {
     this->decreaseTemperature();
-  } else if (cmdName == MiLightCommandNames::NEXT_MODE) {
+  } else if (strcmp(cmdName, MiLightCommandNames::NEXT_MODE) == 0) {
     this->nextMode();
-  } else if (cmdName == MiLightCommandNames::PREVIOUS_MODE) {
+  } else if (strcmp(cmdName, MiLightCommandNames::PREVIOUS_MODE) == 0) {
     this->previousMode();
-  } else if (cmdName == MiLightCommandNames::MODE_SPEED_DOWN) {
+  } else if (strcmp(cmdName, MiLightCommandNames::MODE_SPEED_DOWN) == 0) {
     this->modeSpeedDown();
-  } else if (cmdName == MiLightCommandNames::MODE_SPEED_UP) {
+  } else if (strcmp(cmdName, MiLightCommandNames::MODE_SPEED_UP) == 0) {
     this->modeSpeedUp();
-  } else if (cmdName == MiLightCommandNames::TOGGLE) {
+  } else if (strcmp(cmdName, MiLightCommandNames::TOGGLE) == 0) {
     this->toggleStatus();
-  } else if (cmdName == MiLightCommandNames::TRANSITION) {
+  } else if (strcmp(cmdName, MiLightCommandNames::TRANSITION) == 0) {
     StaticJsonDocument<100> fakedoc;
     this->handleTransition(args, fakedoc);
   }
