@@ -1,5 +1,6 @@
 #include <MiLightRemoteConfig.h>
 #include <MiLightRemoteType.h>
+#include <DebugSerial.h>
 
 /**
  * IMPORTANT NOTE: These should be in the same order as MiLightRemoteType.
@@ -22,8 +23,8 @@ const MiLightRemoteConfig* MiLightRemoteConfig::fromType(const String& type) {
 
 const MiLightRemoteConfig* MiLightRemoteConfig::fromType(MiLightRemoteType type) {
   if (type == REMOTE_TYPE_UNKNOWN || type >= size(ALL_REMOTES)) {
-    Serial.print(F("MiLightRemoteConfig::fromType: ERROR - tried to fetch remote config for unknown type: "));
-    Serial.println(type);
+    DebugSerial.print(F("MiLightRemoteConfig::fromType: ERROR - tried to fetch remote config for unknown type: "));
+    DebugSerial.println(type);
     return NULL;
   }
 
@@ -45,7 +46,7 @@ const MiLightRemoteConfig* MiLightRemoteConfig::fromReceivedPacket(
 
   // This can happen under normal circumstances, so not an error condition
 #ifdef DEBUG_PRINTF
-  Serial.println(F("MiLightRemoteConfig::fromReceivedPacket: ERROR - tried to fetch remote config for unknown packet"));
+  DebugSerial.println(F("MiLightRemoteConfig::fromReceivedPacket: ERROR - tried to fetch remote config for unknown packet"));
 #endif
 
   return NULL;

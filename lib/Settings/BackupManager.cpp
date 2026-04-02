@@ -5,6 +5,7 @@
 #include <BackupManager.h>
 #include <ProjectFS.h>
 #include <StreamUtils.h>
+#include <DebugSerial.h>
 
 
 const uint8_t BackupManager::SETTINGS_BACKUP_VERSION = 1;
@@ -24,20 +25,20 @@ BackupManager::RestoreStatus BackupManager::restoreBackup(Settings& settings, St
 
   // Check the header
   if ((magicHeader & 0xFFFFFF00) != (SETTINGS_MAGIC_HEADER & 0xFFFFFF00)) {
-    Serial.printf("ERROR: invalid backup file header. expected %08X but got %08X\n", SETTINGS_MAGIC_HEADER & 0xFFFFFF00, magicHeader & 0xFFFFFF00);
+    DebugSerial.printf("ERROR: invalid backup file header. expected %08X but got %08X\n", SETTINGS_MAGIC_HEADER & 0xFFFFFF00, magicHeader & 0xFFFFFF00);
     return BackupManager::RestoreStatus::INVALID_HEADER;
   }
 
   // Check the version
   if ((magicHeader & 0xFF) != SETTINGS_BACKUP_VERSION) {
-    Serial.printf("ERROR: invalid settings file version. expected %d but got %d\n", SETTINGS_BACKUP_VERSION, magicHeader & 0xFF);
+    DebugSerial.printf("ERROR: invalid settings file version. expected %d but got %d\n", SETTINGS_BACKUP_VERSION, magicHeader & 0xFF);
     return BackupManager::RestoreStatus::INVALID_VERSION;
   }
 
   // reset settings to default
   settings = Settings();
 
-  Serial.printf("Restoring %d byte backup\n", stream.available());
+  DebugSerial.printf("Restoring %d byte backup\n", stream.available());
   GroupAlias::loadAliases(stream, settings.groupIdAliases);
 
   // read null terminator
@@ -49,12 +50,12 @@ BackupManager::RestoreStatus BackupManager::restoreBackup(Settings& settings, St
   // Copy remaining part of the buffer to the settings file
 
   File f = ProjectFS.open(SETTINGS_FILE, "w");
-  Serial.println(F("Restoring settings file"));
+  DebugSerial.println(F("Restoring settings file"));
   if (!f) {
-    Serial.println(F("Opening settings file failed"));
+    DebugSerial.println(F("Opening settings file failed"));
     return BackupManager::RestoreStatus::INVALID_FILE;
   } else {
-    Serial.printf("%d bytes remaining in backup\n", stream.available());
+    DebugSerial.printf("%d bytes remaining in backup\n", stream.available());
     WriteBufferingStream bufferedStream(f, 128);
 
     while (stream.available()) {

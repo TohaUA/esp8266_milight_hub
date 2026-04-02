@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <Size.h>
 #include <V6CommandHandler.h>
+#include <DebugSerial.h>
 
 #define MATCHES_PACKET(packet1) ( \
   matchesPacket(packet1, size(packet1), packet, packetSize) \
@@ -169,8 +170,8 @@ bool V6MiLightUdpServer::sendResponse(uint16_t sessionId, uint8_t* responseBuffe
   }
 
   if (session == NULL || session->sessionId != sessionId) {
-    Serial.print("Received request with untracked session ID: ");
-    Serial.println(sessionId);
+    DebugSerial.print("Received request with untracked session ID: ");
+    DebugSerial.println(sessionId);
     return false;
   }
 
@@ -283,7 +284,7 @@ void V6MiLightUdpServer::handlePacket(uint8_t* packet, size_t packetSize) {
 
     handleCommand(sessionId, sequenceNum, cmd, group, checksum);
   } else {
-    Serial.println(F("Unhandled V6 packet"));
+    DebugSerial.println(F("Unhandled V6 packet"));
   }
 }
 

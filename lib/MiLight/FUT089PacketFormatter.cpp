@@ -2,6 +2,7 @@
 #include <V2RFEncoding.h>
 #include <Units.h>
 #include <MiLightCommands.h>
+#include <DebugSerial.h>
 
 void FUT089PacketFormatter::modeSpeedDown() {
   command(FUT089_ON, FUT089_MODE_SPEED_DOWN);
@@ -94,7 +95,7 @@ void FUT089PacketFormatter::enableNightMode() {
 
 BulbId FUT089PacketFormatter::parsePacket(const uint8_t *packet, JsonObject result) {
   if (stateStore == NULL) {
-    Serial.println(F("ERROR: stateStore not set.  Prepare was not called!  **THIS IS A BUG**"));
+    DebugSerial.println(F("ERROR: stateStore not set.  Prepare was not called!  **THIS IS A BUG**"));
     BulbId fakeId(0, 0, REMOTE_TYPE_FUT089);
     return fakeId;
   }

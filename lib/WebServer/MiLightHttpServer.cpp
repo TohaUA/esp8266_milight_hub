@@ -15,6 +15,7 @@
 #include <bundle.css.gz.h>
 #include <bundle.js.gz.h>
 #include <BackupManager.h>
+#include <DebugSerial.h>
 
 #ifdef ESP32
   #include <Update.h>
@@ -170,7 +171,7 @@ void MiLightHttpServer::handleSystemPost(RequestContext& request) {
 
   if (requestBody.containsKey(GroupStateFieldNames::COMMAND)) {
     if (requestBody[GroupStateFieldNames::COMMAND] == "restart") {
-      Serial.println(F("Restarting..."));
+      DebugSerial.println(F("Restarting..."));
       server.send_P(200, TEXT_PLAIN, PSTR("{\"success\": true}"));
 
       delay(100);
@@ -179,14 +180,14 @@ void MiLightHttpServer::handleSystemPost(RequestContext& request) {
 
       handled = true;
     } else if (requestBody[GroupStateFieldNames::COMMAND] == "clear_wifi_config") {
-      Serial.println(F("Resetting Wifi and then Restarting..."));
+      DebugSerial.println(F("Resetting Wifi and then Restarting..."));
       server.send_P(200, TEXT_PLAIN, PSTR("{\"success\": true}"));
 
       delay(100);
 #ifdef ESP8266
       ESP.eraseConfig();
 #elif defined(ESP32)
-      Serial.println(F("Wifi reset..."));
+      DebugSerial.println(F("Wifi reset..."));
       WiFi.disconnect(true, true);
       delay(1000);
 #endif
@@ -257,7 +258,7 @@ void MiLightHttpServer::handleUpdateFile(const char* filename) {
     updateFile = ProjectFS.open(filename, "w");
   } else if(upload.status == UPLOAD_FILE_WRITE){
     if (updateFile.write(upload.buf, upload.currentSize) != upload.currentSize) {
-      Serial.println(F("Error updating web file"));
+      DebugSerial.println(F("Error updating web file"));
     }
   } else if (upload.status == UPLOAD_FILE_END) {
     updateFile.close();
@@ -272,7 +273,7 @@ void MiLightHttpServer::handleUpdateSettings(RequestContext& request) {
     saveSettings();
 
     request.response.json["success"] = true;
-    Serial.println(F("Settings successfully updated"));
+    DebugSerial.println(F("Settings successfully updated"));
   }
 }
 
@@ -332,7 +333,7 @@ void MiLightHttpServer::handleFirmwareUpload() {
 #elif defined(ESP32)
   HTTPUpload &upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
-    Serial.printf("Update: %s\n", upload.filename.c_str());
+    DebugSerial.printf("Update: %s\n", upload.filename.c_str());
     if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // start with max available size
       Update.printError(Serial);
     }
@@ -342,13 +343,13 @@ void MiLightHttpServer::handleFirmwareUpload() {
     }
   } else if (upload.status == UPLOAD_FILE_END) {
     if (Update.end(true)) { // true to set the size to the current progress
-      Serial.println("Update Success: Will reboot after response.");
+      DebugSerial.println("Update Success: Will reboot after response.");
     } else {
       Update.printError(Serial);
     }
   } else if (upload.status == UPLOAD_FILE_ABORTED) {
     Update.end();
-    Serial.println("Update was aborted");
+    DebugSerial.println("Update was aborted");
   }
   delay(0);
 #endif
@@ -666,7 +667,7 @@ void MiLightHttpServer::handleWsEvent(uint8_t num, WStype_t type, uint8_t *paylo
       break;
 
     default:
-      Serial.printf("Unhandled websocket event: %d\n", static_cast<uint8_t>(type));
+      DebugSerial.printf("Unhandled websocket event: %d\n", static_cast<uint8_t>(type));
       break;
   }
 }
@@ -1018,7 +1019,7 @@ void MiLightHttpServer::handleCreateBackup(RequestContext &request) {
   File backupFile = ProjectFS.open(BACKUP_FILE, "w");
 
   if (!backupFile) {
-    Serial.println(F("Failed to open backup file"));
+    DebugSerial.println(F("Failed to open backup file"));
     request.response.setCode(500);
     request.response.json[F("error")] = F("Failed to open backup file");
     return;
@@ -1030,7 +1031,7 @@ void MiLightHttpServer::handleCreateBackup(RequestContext &request) {
   backupFile.close();
 
   backupFile = ProjectFS.open(BACKUP_FILE, "r");
-  Serial.printf("Sending backup file of size %d\n", backupFile.size());
+  DebugSerial.printf("Sending backup file of size %d\n", backupFile.size());
   server.streamFile(backupFile, APPLICATION_OCTET_STREAM);
 
   ProjectFS.remove(BACKUP_FILE);

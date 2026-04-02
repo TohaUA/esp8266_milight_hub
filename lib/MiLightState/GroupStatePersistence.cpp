@@ -1,6 +1,7 @@
 #include <GroupStatePersistence.h>
 #include <FS.h>
 #include "ProjectFS.h"
+#include <DebugSerial.h>
 
 #ifdef ESP8266
     static const char FILE_PREFIX[] = "group_states/";
@@ -42,7 +43,7 @@ void GroupStatePersistence::set(const BulbId &id, const GroupState& state) {
 
   File f = ProjectFS.open(tmpPath, "w");
   if (!f) {
-    Serial.printf("Failed to open state temp file: %s\n", tmpPath);
+    DebugSerial.printf("Failed to open state temp file: %s\n", tmpPath);
     return;
   }
   state.dump(f);

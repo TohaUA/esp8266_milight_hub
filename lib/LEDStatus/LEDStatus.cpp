@@ -1,4 +1,5 @@
 #include <LEDStatus.h>
+#include <DebugSerial.h>
 
 // constructor defines which pin the LED is attached to
 LEDStatus::LEDStatus(int8_t ledPin) {
@@ -208,7 +209,7 @@ void LEDStatus::_modeToTime(LEDStatus::LEDMode mode, uint16_t& ledOffMs, uint16_
       ledOnMs = 30;
       break;
     default:
-      Serial.printf("LEDStatus::_modeToTime: Uknown LED mode %d\n", mode);
+      DebugSerial.printf("LEDStatus::_modeToTime: Uknown LED mode %d\n", mode);
       ledOffMs = 500;
       ledOnMs = 2000;
       break;

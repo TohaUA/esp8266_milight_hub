@@ -1,5 +1,6 @@
 #include <V2PacketFormatter.h>
 #include <V2RFEncoding.h>
+#include <DebugSerial.h>
 
 
 #define GROUP_COMMAND_ARG(status, groupId, numGroups) ( groupId + (status == OFF ? (numGroups + 1) : 0) )
@@ -16,7 +17,7 @@ bool V2PacketFormatter::canHandle(const uint8_t *packet, const size_t packetLen)
   V2RFEncoding::decodeV2Packet(packetCopy);
 
 #ifdef DEBUG_PRINTF
-  Serial.printf("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n", protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
+  DebugSerial.printf("Testing whether formater for ID %d can handle packet: with protocol ID %d...\n", protocolId, packetCopy[V2_PROTOCOL_ID_INDEX]);
 #endif
 
   return packetCopy[V2_PROTOCOL_ID_INDEX] == protocolId;
@@ -104,7 +105,7 @@ void V2PacketFormatter::switchMode(const GroupState& currentState, BulbMode desi
       updateColorWhite();
       break;
     default:
-      Serial.printf("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n", desiredMode);
+      DebugSerial.printf("V2PacketFormatter::switchMode: Request to switch to unknown mode %d\n", desiredMode);
       break;
   }
 

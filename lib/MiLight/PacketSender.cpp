@@ -1,5 +1,6 @@
 #include <PacketSender.h>
 #include <MiLightRadioConfig.h>
+#include <DebugSerial.h>
 
 PacketSender::PacketSender(
   RadioSwitchboard& radioSwitchboard,
@@ -21,7 +22,7 @@ PacketSender::PacketSender(
 
 void PacketSender::enqueue(uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride) {
 #ifdef DEBUG_PRINTF
-  Serial.println("Enqueuing packet");
+  DebugSerial.println("Enqueuing packet");
 #endif
   size_t repeats = repeatsOverride == DEFAULT_PACKET_SENDS_VALUE
     ? this->currentResendCount
@@ -48,7 +49,7 @@ bool PacketSender::isSending() {
 
 void PacketSender::nextPacket() {
 #ifdef DEBUG_PRINTF
-  Serial.printf("Switching to next packet, %d packets in queue\n", queue.size());
+  DebugSerial.printf("Switching to next packet, %d packets in queue\n", queue.size());
 #endif
   hasCurrentPacket = queue.peek(currentPacket);
 
@@ -92,11 +93,11 @@ void PacketSender::sendRepeats(size_t num) {
   size_t len = currentPacket.remoteConfig->packetFormatter->getPacketLength();
 
 #ifdef DEBUG_PRINTF
-  Serial.printf("Sending packet (%d repeats): \n", num);
+  DebugSerial.printf("Sending packet (%d repeats): \n", num);
   for (size_t i = 0; i < len; i++) {
-    Serial.printf("%02X ", currentPacket.packet[i]);
+    DebugSerial.printf("%02X ", currentPacket.packet[i]);
   }
-  Serial.println();
+  DebugSerial.println();
   int iStart = millis();
 #endif
 
@@ -106,8 +107,8 @@ void PacketSender::sendRepeats(size_t num) {
 
 #ifdef DEBUG_PRINTF
   int iElapsed = millis() - iStart;
-  Serial.print("Elapsed: ");
-  Serial.println(iElapsed);
+  DebugSerial.print("Elapsed: ");
+  DebugSerial.println(iElapsed);
 #endif
 }
 

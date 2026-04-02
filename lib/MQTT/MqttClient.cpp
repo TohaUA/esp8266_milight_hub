@@ -7,6 +7,7 @@
 #include <WiFiClient.h>
 #include <MiLightRadioConfig.h>
 #include <AboutHelper.h>
+#include <DebugSerial.h>
 
 
 const std::map<int, const __FlashStringHelper*> MQTT_STATUS_STRINGS = {
@@ -77,8 +78,8 @@ bool MqttClient::connect() {
   String lwtMessage = generateConnectionStatusMessage(STATUS_LWT_DISCONNECTED);
 
 #ifdef MQTT_DEBUG
-    Serial.println(F("MqttClient - connecting using name"));
-    Serial.println(nameBuffer);
+    DebugSerial.println(F("MqttClient - connecting using name"));
+    DebugSerial.println(nameBuffer);
 #endif
 
   if (settings.mqttUsername.length() > 0 && settings.mqttClientStatusTopic.length() > 0) {
@@ -128,11 +129,11 @@ void MqttClient::reconnect() {
       sendBirthMessage();
 
 #ifdef MQTT_DEBUG
-      Serial.println(F("MqttClient - Successfully connected to MQTT server"));
+      DebugSerial.println(F("MqttClient - Successfully connected to MQTT server"));
 #endif
     } else {
-      Serial.print(F("ERROR: Failed to connect to MQTT server rc="));
-      Serial.println(mqttClient.state());
+      DebugSerial.print(F("ERROR: Failed to connect to MQTT server rc="));
+      DebugSerial.println(mqttClient.state());
     }
   }
 
@@ -188,11 +189,11 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
     const uint8_t* messageBuffer = reinterpret_cast<const uint8_t*>(message);
 
 #ifdef MQTT_DEBUG
-    Serial.printf("Printing message in parts because it's too large for the packet buffer (%d bytes)", len);
+    DebugSerial.printf("Printing message in parts because it's too large for the packet buffer (%d bytes)", len);
 #endif
 
     if (!mqttClient.beginPublish(topic, len, retain)) {
-      Serial.println(F("MqttClient - beginPublish failed"));
+      DebugSerial.println(F("MqttClient - beginPublish failed"));
       return;
     }
 
@@ -200,11 +201,11 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
       size_t toWrite = std::min(static_cast<size_t>(MQTT_PACKET_CHUNK_SIZE), len - i);
       size_t written = mqttClient.write(messageBuffer+i, toWrite);
       if (written != toWrite) {
-        Serial.println(F("MqttClient - write failed mid-publish"));
+        DebugSerial.println(F("MqttClient - write failed mid-publish"));
         break;
       }
 #ifdef MQTT_DEBUG
-      Serial.printf("  Wrote %d bytes\n", toWrite);
+      DebugSerial.printf("  Wrote %d bytes\n", toWrite);
 #endif
     }
 
@@ -241,7 +242,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   const MiLightRemoteConfig* config = &FUT092Config;
   const int MAX_MQTT_PAYLOAD = 512;
   if (length > MAX_MQTT_PAYLOAD) {
-    Serial.printf("MqttClient - payload too large (%d bytes), ignoring\n", length);
+    DebugSerial.printf("MqttClient - payload too large (%d bytes), ignoring\n", length);
     return;
   }
   char cstrPayload[MAX_MQTT_PAYLOAD + 1];
@@ -261,7 +262,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
     auto itr = settings.groupIdAliases.find(alias);
 
     if (itr == settings.groupIdAliases.end()) {
-      Serial.printf("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n", alias.c_str());
+      DebugSerial.printf("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n", alias.c_str());
       return;
     } else {
       BulbId bulbId = itr->second.bulbId;
@@ -286,19 +287,19 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
     if (tokenBindings.hasBinding(GroupStateFieldNames::DEVICE_TYPE)) {
       config = MiLightRemoteConfig::fromType(tokenBindings.get(GroupStateFieldNames::DEVICE_TYPE));
     } else {
-      Serial.println(F("MqttClient - WARNING: could not find device_type token.  Defaulting to FUT092.\n"));
+      DebugSerial.println(F("MqttClient - WARNING: could not find device_type token.  Defaulting to FUT092.\n"));
     }
   }
 
   if (config == NULL) {
-    Serial.println(F("MqttClient - ERROR: unknown device_type specified"));
+    DebugSerial.println(F("MqttClient - ERROR: unknown device_type specified"));
     return;
   }
 
   JsonDocument buffer;
   DeserializationError err = deserializeJson(buffer, cstrPayload);
   if (err) {
-    Serial.printf("MqttClient - JSON parse error: %s\n", err.c_str());
+    DebugSerial.printf("MqttClient - JSON parse error: %s\n", err.c_str());
     return;
   }
   JsonObject obj = buffer.as<JsonObject>();

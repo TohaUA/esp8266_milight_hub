@@ -1,5 +1,6 @@
 #include <GroupStateStore.h>
 #include <MiLightRemoteConfig.h>
+#include <DebugSerial.h>
 
 GroupStateStore::GroupStateStore(const size_t maxSize, const size_t flushRate)
   : cache(GroupStateCache(maxSize)),
@@ -63,7 +64,7 @@ GroupState* GroupStateStore::set(const BulbId &id, const GroupState& state) {
     }
 
 #ifdef STATE_DEBUG
-    Serial.printf("Fanning out group 0 state for device ID 0x%04X (%d groups in total)\n", id.deviceId, remote->numGroups);
+    DebugSerial.printf("Fanning out group 0 state for device ID 0x%04X (%d groups in total)\n", id.deviceId, remote->numGroups);
     state.debugState("group 0 state = ");
 #endif
 

@@ -1,4 +1,5 @@
 #include <BulbStateUpdater.h>
+#include <DebugSerial.h>
 
 BulbStateUpdater::BulbStateUpdater(Settings& settings, MqttClient& mqttClient, GroupStateStore& stateStore)
   : settings(settings),
@@ -47,7 +48,7 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
   state.applyState(message, bulbId, settings.groupStateFields);
 
   if (json.overflowed()) {
-    Serial.println(F("ERROR: State is too large for MQTT buffer, continuing anyway. Consider increasing MILIGHT_MQTT_JSON_BUFFER_SIZE."));
+    DebugSerial.println(F("ERROR: State is too large for MQTT buffer, continuing anyway. Consider increasing MILIGHT_MQTT_JSON_BUFFER_SIZE."));
   }
 
   char buffer[MILIGHT_MQTT_JSON_BUFFER_SIZE];
@@ -55,7 +56,7 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
 
   const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(bulbId.deviceType);
   if (config == NULL) {
-    Serial.println(F("BulbStateUpdater: unknown device type, skipping flush"));
+    DebugSerial.println(F("BulbStateUpdater: unknown device type, skipping flush"));
     return;
   }
 

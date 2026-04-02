@@ -1,5 +1,6 @@
 #include <MiLightRemoteType.h>
 #include <Arduino.h>
+#include <DebugSerial.h>
 
 static const char* REMOTE_NAME_RGBW    = "rgbw";
 static const char* REMOTE_NAME_CCT     = "cct";
@@ -38,8 +39,8 @@ const MiLightRemoteType MiLightRemoteTypeHelpers::remoteTypeFromString(const Str
     return REMOTE_TYPE_FUT020;
   }
 
-  Serial.print(F("remoteTypeFromString: ERROR - tried to fetch remote config for type: "));
-  Serial.println(type);
+  DebugSerial.print(F("remoteTypeFromString: ERROR - tried to fetch remote config for type: "));
+  DebugSerial.println(type);
 
   return REMOTE_TYPE_UNKNOWN;
 }
@@ -61,8 +62,8 @@ const char* MiLightRemoteTypeHelpers::remoteTypeToString(const MiLightRemoteType
     case REMOTE_TYPE_FUT020:
       return REMOTE_NAME_FUT020;
     default:
-      Serial.print(F("remoteTypeToString: ERROR - tried to fetch remote config name for unknown type: "));
-      Serial.println(type);
+      DebugSerial.print(F("remoteTypeToString: ERROR - tried to fetch remote config name for unknown type: "));
+      DebugSerial.println(type);
       return "unknown";
   }
 }

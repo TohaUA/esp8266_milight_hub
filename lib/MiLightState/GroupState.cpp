@@ -4,6 +4,7 @@
 #include <ColorUtils.h>
 #include <BulbId.h>
 #include <MiLightCommands.h>
+#include <DebugSerial.h>
 
 
 static const char* BULB_MODE_NAMES[] = {
@@ -204,7 +205,7 @@ bool GroupState::clearField(GroupStateField field) {
       break;
 
     default:
-      Serial.printf("Attempted to clear unknown field: %d\n", static_cast<uint8_t>(field));
+      DebugSerial.printf("Attempted to clear unknown field: %d\n", static_cast<uint8_t>(field));
       break;
   }
 
@@ -245,8 +246,8 @@ bool GroupState::isSetField(GroupStateField field) const {
     case GroupStateField::COLOR_MODE:
       return isSetBulbMode();
     default:
-      Serial.print(F("WARNING: tried to check if unknown field was set: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to check if unknown field was set: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -260,8 +261,8 @@ bool GroupState::isSetScratchField(GroupStateField field) const {
     case GroupStateField::KELVIN:
       return scratchpad.fields._isSetKelvinScratch;
     default:
-      Serial.print(F("WARNING: tried to check if unknown scratch field was set: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to check if unknown scratch field was set: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -286,8 +287,8 @@ uint16_t GroupState::getFieldValue(GroupStateField field) const {
     case GroupStateField::BULB_MODE:
       return getBulbMode();
     default:
-      Serial.print(F("WARNING: tried to fetch value for unknown field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to fetch value for unknown field: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -314,8 +315,8 @@ uint16_t GroupState::getScratchFieldValue(GroupStateField field) const {
     case GroupStateField::KELVIN:
       return scratchpad.fields._kelvinScratch;
     default:
-      Serial.print(F("WARNING: tried to fetch value for unknown scratch field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to fetch value for unknown scratch field: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 
@@ -347,8 +348,8 @@ void GroupState::setFieldValue(GroupStateField field, uint16_t value) {
       setBulbMode(static_cast<BulbMode>(value));
       break;
     default:
-      Serial.print(F("WARNING: tried to set value for unknown field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to set value for unknown field: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 }
@@ -364,8 +365,8 @@ void GroupState::setScratchFieldValue(GroupStateField field, uint16_t value) {
       scratchpad.fields._kelvinScratch = value;
       break;
     default:
-      Serial.print(F("WARNING: tried to set value for unknown scratch field: "));
-      Serial.println(static_cast<unsigned int>(field));
+      DebugSerial.print(F("WARNING: tried to set value for unknown scratch field: "));
+      DebugSerial.println(static_cast<unsigned int>(field));
       break;
   }
 }
@@ -631,8 +632,8 @@ void GroupState::dump(Stream& stream) const {
 
 bool GroupState::applyIncrementCommand(GroupStateField field, IncrementDirection dir) {
   if (field != GroupStateField::KELVIN && field != GroupStateField::BRIGHTNESS) {
-    Serial.print(F("WARNING: tried to apply increment for unsupported field: "));
-    Serial.println(static_cast<uint8_t>(field));
+    DebugSerial.print(F("WARNING: tried to apply increment for unsupported field: "));
+    DebugSerial.println(static_cast<uint8_t>(field));
     return false;
   }
 
@@ -669,10 +670,10 @@ bool GroupState::applyIncrementCommand(GroupStateField field, IncrementDirection
     }
 
 #ifdef STATE_DEBUG
-    Serial.print(F("Updated scratch field: "));
-    Serial.print(static_cast<int8_t>(field));
-    Serial.print(F(" to: "));
-    Serial.println(getScratchFieldValue(field));
+    DebugSerial.print(F("Updated scratch field: "));
+    DebugSerial.print(static_cast<int8_t>(field));
+    DebugSerial.print(F(" to: "));
+    DebugSerial.println(getScratchFieldValue(field));
 #endif
   }
 
@@ -707,7 +708,7 @@ bool GroupState::clearNonMatchingFields(const GroupState& other) {
 void GroupState::patch(const GroupState& other) {
 #ifdef STATE_DEBUG
   other.debugState("Patching existing state with: ");
-  Serial.println();
+  DebugSerial.println();
 #endif
 
   for (size_t i = 0; i < size(ALL_PHYSICAL_FIELDS); ++i) {
@@ -748,9 +749,9 @@ bool GroupState::patch(JsonObject state) {
   bool changes = false;
 
 #ifdef STATE_DEBUG
-  Serial.print(F("Patching existing state with: "));
+  DebugSerial.print(F("Patching existing state with: "));
   serializeJson(state, Serial);
-  Serial.println();
+  DebugSerial.println();
 #endif
 
   if (state.containsKey(GroupStateFieldNames::STATE)) {
@@ -969,7 +970,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
         break;
 
       default:
-        Serial.printf("Tried to apply unknown field: %d\n", static_cast<uint8_t>(field));
+        DebugSerial.printf("Tried to apply unknown field: %d\n", static_cast<uint8_t>(field));
         break;
     }
   }
@@ -1001,10 +1002,10 @@ void GroupState::debugState(char const *debugMessage) const {
   // use applyState to build JSON of all fields (from above)
   applyState(jsonState, id, fields);
   // convert to string and print
-  Serial.printf("%s: ", debugMessage);
+  DebugSerial.printf("%s: ", debugMessage);
   serializeJson(jsonState, Serial);
-  Serial.println("");
-  Serial.printf("Raw data: %08X %08X\n", state.rawData[0], state.rawData[1]);
+  DebugSerial.println("");
+  DebugSerial.printf("Raw data: %08X %08X\n", state.rawData[0], state.rawData[1]);
 #endif
 }
 

@@ -6,6 +6,7 @@
 #include <GroupAlias.h>
 #include <ProjectFS.h>
 #include <StreamUtils.h>
+#include <DebugSerial.h>
 
 const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS({
   GroupStateField::STATE,
@@ -66,15 +67,15 @@ void Settings::updateGatewayConfigs(JsonArray arr) {
       std::shared_ptr<GatewayConfig> ptr = std::make_shared<GatewayConfig>(parseInt<uint16_t>(params[0]), params[1], params[2]);
       gatewayConfigs.push_back(std::move(ptr));
     } else {
-      Serial.print(F("Settings - skipped parsing gateway ports settings for element #"));
-      Serial.println(i);
+      DebugSerial.print(F("Settings - skipped parsing gateway ports settings for element #"));
+      DebugSerial.println(i);
     }
   }
 }
 
 void Settings::patch(JsonObject parsedSettings) {
   if (parsedSettings.isNull()) {
-    Serial.println(F("Skipping patching loaded settings.  Parsed settings was null."));
+    DebugSerial.println(F("Skipping patching loaded settings.  Parsed settings was null."));
     return;
   }
 
@@ -259,12 +260,12 @@ bool Settings::load(Settings& settings) {
       JsonObject parsedSettings = json.as<JsonObject>();
       settings.patch(parsedSettings);
     } else {
-      Serial.print(F("Error parsing saved settings file: "));
-      Serial.println(error.c_str());
-      Serial.println(F("contents:"));
+      DebugSerial.print(F("Error parsing saved settings file: "));
+      DebugSerial.println(error.c_str());
+      DebugSerial.println(F("contents:"));
 
       f = ProjectFS.open(SETTINGS_FILE, "r");
-      Serial.println(f.readString());
+      DebugSerial.println(f.readString());
 
       return false;
     }
@@ -278,7 +279,7 @@ bool Settings::load(Settings& settings) {
   const bool aliasesFileEmpty = loadAliases(settings);
 
   if (!settingKeyAliasesEmpty && aliasesFileEmpty) {
-    Serial.println(F("Porting aliases from settings file to aliases file"));
+    DebugSerial.println(F("Porting aliases from settings file to aliases file"));
     shouldInit = true;
   }
 
@@ -293,7 +294,7 @@ void Settings::save() {
   File f = ProjectFS.open("/config.json.tmp", "w");
 
   if (!f) {
-    Serial.println(F("Opening settings temp file failed"));
+    DebugSerial.println(F("Opening settings temp file failed"));
     return;
   } else {
     WriteBufferingStream writer{f, 64};
@@ -308,7 +309,7 @@ void Settings::save() {
   File aliasesFile = ProjectFS.open("/aliases.bin.tmp", "w");
 
   if (!aliasesFile) {
-    Serial.println(F("Opening aliases temp file failed"));
+    DebugSerial.println(F("Opening aliases temp file failed"));
   } else {
     WriteBufferingStream aliases{aliasesFile, 64};
     GroupAlias::saveAliases(aliases, groupIdAliases);

@@ -5,6 +5,7 @@
 #include <TokenIterator.h>
 #include <ParsedColor.h>
 #include <MiLightCommands.h>
+#include <DebugSerial.h>
 
 static const uint8_t STATUS_UNDEFINED = 255;
 
@@ -99,7 +100,7 @@ void MiLightClient::prepare(
 ) {
   const MiLightRemoteConfig* config = MiLightRemoteConfig::fromType(type);
   if (config == NULL) {
-    Serial.println(F("MiLightClient::prepare - unknown remote type, ignoring"));
+    DebugSerial.println(F("MiLightClient::prepare - unknown remote type, ignoring"));
     return;
   }
   prepare(config, deviceId, groupId);
@@ -107,7 +108,7 @@ void MiLightClient::prepare(
 
 void MiLightClient::updateColorRaw(const uint8_t color) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateColorRaw: Change color to %d\n", color);
+  DebugSerial.printf("MiLightClient::updateColorRaw: Change color to %d\n", color);
 #endif
   currentRemote->packetFormatter->updateColorRaw(color);
   flushPacket();
@@ -115,7 +116,7 @@ void MiLightClient::updateColorRaw(const uint8_t color) {
 
 void MiLightClient::updateHue(const uint16_t hue) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateHue: Change hue to %d\n", hue);
+  DebugSerial.printf("MiLightClient::updateHue: Change hue to %d\n", hue);
 #endif
   currentRemote->packetFormatter->updateHue(hue);
   flushPacket();
@@ -123,7 +124,7 @@ void MiLightClient::updateHue(const uint16_t hue) {
 
 void MiLightClient::updateBrightness(const uint8_t brightness) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateBrightness: Change brightness to %d\n", brightness);
+  DebugSerial.printf("MiLightClient::updateBrightness: Change brightness to %d\n", brightness);
 #endif
   currentRemote->packetFormatter->updateBrightness(brightness);
   flushPacket();
@@ -131,7 +132,7 @@ void MiLightClient::updateBrightness(const uint8_t brightness) {
 
 void MiLightClient::updateMode(uint8_t mode) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateMode: Change mode to %d\n", mode);
+  DebugSerial.printf("MiLightClient::updateMode: Change mode to %d\n", mode);
 #endif
   currentRemote->packetFormatter->updateMode(mode);
   flushPacket();
@@ -139,7 +140,7 @@ void MiLightClient::updateMode(uint8_t mode) {
 
 void MiLightClient::nextMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::nextMode: Switch to next mode"));
+  DebugSerial.println(F("MiLightClient::nextMode: Switch to next mode"));
 #endif
   currentRemote->packetFormatter->nextMode();
   flushPacket();
@@ -147,7 +148,7 @@ void MiLightClient::nextMode() {
 
 void MiLightClient::previousMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::previousMode: Switch to previous mode"));
+  DebugSerial.println(F("MiLightClient::previousMode: Switch to previous mode"));
 #endif
   currentRemote->packetFormatter->previousMode();
   flushPacket();
@@ -155,14 +156,14 @@ void MiLightClient::previousMode() {
 
 void MiLightClient::modeSpeedDown() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::modeSpeedDown: Speed down\n"));
+  DebugSerial.println(F("MiLightClient::modeSpeedDown: Speed down\n"));
 #endif
   currentRemote->packetFormatter->modeSpeedDown();
   flushPacket();
 }
 void MiLightClient::modeSpeedUp() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::modeSpeedUp: Speed up"));
+  DebugSerial.println(F("MiLightClient::modeSpeedUp: Speed up"));
 #endif
   currentRemote->packetFormatter->modeSpeedUp();
   flushPacket();
@@ -170,7 +171,7 @@ void MiLightClient::modeSpeedUp() {
 
 void MiLightClient::updateStatus(MiLightStatus status, uint8_t groupId) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateStatus: Status %s, groupId %d\n", status == MiLightStatus::OFF ? "OFF" : "ON", groupId);
+  DebugSerial.printf("MiLightClient::updateStatus: Status %s, groupId %d\n", status == MiLightStatus::OFF ? "OFF" : "ON", groupId);
 #endif
   currentRemote->packetFormatter->updateStatus(status, groupId);
   flushPacket();
@@ -178,7 +179,7 @@ void MiLightClient::updateStatus(MiLightStatus status, uint8_t groupId) {
 
 void MiLightClient::updateStatus(MiLightStatus status) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateStatus: Status %s\n", status == MiLightStatus::OFF ? "OFF" : "ON");
+  DebugSerial.printf("MiLightClient::updateStatus: Status %s\n", status == MiLightStatus::OFF ? "OFF" : "ON");
 #endif
   currentRemote->packetFormatter->updateStatus(status);
   flushPacket();
@@ -186,7 +187,7 @@ void MiLightClient::updateStatus(MiLightStatus status) {
 
 void MiLightClient::updateSaturation(const uint8_t value) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateSaturation: Saturation %d\n", value);
+  DebugSerial.printf("MiLightClient::updateSaturation: Saturation %d\n", value);
 #endif
   currentRemote->packetFormatter->updateSaturation(value);
   flushPacket();
@@ -194,7 +195,7 @@ void MiLightClient::updateSaturation(const uint8_t value) {
 
 void MiLightClient::updateColorWhite() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::updateColorWhite: Color white"));
+  DebugSerial.println(F("MiLightClient::updateColorWhite: Color white"));
 #endif
   currentRemote->packetFormatter->updateColorWhite();
   flushPacket();
@@ -202,7 +203,7 @@ void MiLightClient::updateColorWhite() {
 
 void MiLightClient::enableNightMode() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::enableNightMode: Night mode"));
+  DebugSerial.println(F("MiLightClient::enableNightMode: Night mode"));
 #endif
   currentRemote->packetFormatter->enableNightMode();
   flushPacket();
@@ -210,7 +211,7 @@ void MiLightClient::enableNightMode() {
 
 void MiLightClient::pair() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::pair: Pair"));
+  DebugSerial.println(F("MiLightClient::pair: Pair"));
 #endif
   currentRemote->packetFormatter->pair();
   flushPacket();
@@ -218,7 +219,7 @@ void MiLightClient::pair() {
 
 void MiLightClient::unpair() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::unpair: Unpair"));
+  DebugSerial.println(F("MiLightClient::unpair: Unpair"));
 #endif
   currentRemote->packetFormatter->unpair();
   flushPacket();
@@ -226,7 +227,7 @@ void MiLightClient::unpair() {
 
 void MiLightClient::increaseBrightness() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::increaseBrightness: Increase brightness"));
+  DebugSerial.println(F("MiLightClient::increaseBrightness: Increase brightness"));
 #endif
   currentRemote->packetFormatter->increaseBrightness();
   flushPacket();
@@ -234,7 +235,7 @@ void MiLightClient::increaseBrightness() {
 
 void MiLightClient::decreaseBrightness() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::decreaseBrightness: Decrease brightness"));
+  DebugSerial.println(F("MiLightClient::decreaseBrightness: Decrease brightness"));
 #endif
   currentRemote->packetFormatter->decreaseBrightness();
   flushPacket();
@@ -242,7 +243,7 @@ void MiLightClient::decreaseBrightness() {
 
 void MiLightClient::increaseTemperature() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::increaseTemperature: Increase temperature"));
+  DebugSerial.println(F("MiLightClient::increaseTemperature: Increase temperature"));
 #endif
   currentRemote->packetFormatter->increaseTemperature();
   flushPacket();
@@ -250,7 +251,7 @@ void MiLightClient::increaseTemperature() {
 
 void MiLightClient::decreaseTemperature() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.println(F("MiLightClient::decreaseTemperature: Decrease temperature"));
+  DebugSerial.println(F("MiLightClient::decreaseTemperature: Decrease temperature"));
 #endif
   currentRemote->packetFormatter->decreaseTemperature();
   flushPacket();
@@ -258,7 +259,7 @@ void MiLightClient::decreaseTemperature() {
 
 void MiLightClient::updateTemperature(const uint8_t temperature) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::updateTemperature: Set temperature to %d\n", temperature);
+  DebugSerial.printf("MiLightClient::updateTemperature: Set temperature to %d\n", temperature);
 #endif
   currentRemote->packetFormatter->updateTemperature(temperature);
   flushPacket();
@@ -266,7 +267,7 @@ void MiLightClient::updateTemperature(const uint8_t temperature) {
 
 void MiLightClient::command(uint8_t command, uint8_t arg) {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::command: Execute command %d, argument %d\n", command, arg);
+  DebugSerial.printf("MiLightClient::command: Execute command %d, argument %d\n", command, arg);
 #endif
   currentRemote->packetFormatter->command(command, arg);
   flushPacket();
@@ -274,7 +275,7 @@ void MiLightClient::command(uint8_t command, uint8_t arg) {
 
 void MiLightClient::toggleStatus() {
 #ifdef DEBUG_CLIENT_COMMANDS
-  Serial.printf("MiLightClient::toggleStatus");
+  DebugSerial.printf("MiLightClient::toggleStatus");
 #endif
   currentRemote->packetFormatter->toggleStatus();
   flushPacket();
@@ -284,7 +285,7 @@ void MiLightClient::updateColor(JsonVariant json) {
   ParsedColor color = ParsedColor::fromJson(json);
 
   if (!color.success) {
-    Serial.println(F("Error parsing color field, unrecognized format"));
+    DebugSerial.println(F("Error parsing color field, unrecognized format"));
     return;
   }
 
@@ -316,7 +317,7 @@ void MiLightClient::update(JsonObject request) {
     } else if (jsonTransition.is<size_t>()) {
       transition = jsonTransition.as<size_t>();
     } else {
-      Serial.println(F("MiLightClient - WARN: unsupported transition type.  Must be float or int."));
+      DebugSerial.println(F("MiLightClient - WARN: unsupported transition type.  Must be float or int."));
     }
   }
 
@@ -468,7 +469,7 @@ void MiLightClient::handleTransition(GroupStateField field, JsonVariant value, f
   std::shared_ptr<Transition::Builder> transitionBuilder = nullptr;
 
   if (currentState == nullptr) {
-    Serial.println(F("Error planning transition: could not find current bulb state."));
+    DebugSerial.println(F("Error planning transition: could not find current bulb state."));
     return;
   }
 
@@ -516,7 +517,7 @@ void MiLightClient::handleTransition(GroupStateField field, JsonVariant value, f
   }
 
   if (transitionBuilder == nullptr) {
-    Serial.printf("Unsupported transition field: %s\n", GroupStateFieldHelpers::getFieldName(field));
+    DebugSerial.printf("Unsupported transition field: %s\n", GroupStateFieldHelpers::getFieldName(field));
     return;
   }
 

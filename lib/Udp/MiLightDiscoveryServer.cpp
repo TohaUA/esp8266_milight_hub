@@ -1,5 +1,6 @@
 #include <MiLightDiscoveryServer.h>
 #include <Size.h>
+#include <DebugSerial.h>
 #ifdef ESP8266
   #include <ESP8266WiFi.h>
 #elif defined(ESP32)
@@ -91,9 +92,9 @@ void MiLightDiscoveryServer::handleDiscovery(uint8_t version) {
 void MiLightDiscoveryServer::sendResponse(char* buffer) {
 #ifdef MILIGHT_UDP_DEBUG
   printf("Sending response: %s, remote:", buffer);
-  Serial.print(socket.remoteIP());
-  Serial.print(":");
-  Serial.println(socket.remotePort());
+  DebugSerial.print(socket.remoteIP());
+  DebugSerial.print(":");
+  DebugSerial.println(socket.remotePort());
 #endif
 
   socket.beginPacket(socket.remoteIP(), socket.remotePort());

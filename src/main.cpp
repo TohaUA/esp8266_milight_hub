@@ -23,6 +23,7 @@
 #include <TransitionController.h>
 #include <ProjectWifi.h>
 #include <ESPTelnet.h>
+#include <DebugSerial.h>
 #include <AboutHelper.h>
 
 #include <ESPId.h>
@@ -141,8 +142,8 @@ void initMilightUdpServers() {
     );
 
     if (server == NULL) {
-      Serial.print(F("Error creating UDP server with protocol version: "));
-      Serial.println(config.protocolVersion);
+      DebugSerial.print(F("Error creating UDP server with protocol version: "));
+      DebugSerial.println(config.protocolVersion);
     } else {
       udpServers.push_back(std::move(server));
       udpServers.back()->begin();
@@ -175,7 +176,7 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
   ledStatus->oneshot(settings.ledModePacket, settings.ledModePacketCount);
 
   if (bulbId == DEFAULT_BULB_ID) {
-    Serial.println(F("Skipping packet handler because packet was not decoded"));
+    DebugSerial.println(F("Skipping packet handler because packet was not decoded"));
     return;
   }
 
@@ -183,7 +184,7 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     MiLightRemoteConfig::fromType(bulbId.deviceType);
 
   if (remoteConfig == NULL) {
-    Serial.println(F("Skipping packet handler: unknown device type"));
+    DebugSerial.println(F("Skipping packet handler: unknown device type"));
     return;
   }
 
@@ -243,7 +244,7 @@ void handleListen() {
       if (remoteConfig == NULL) {
         // This can happen under normal circumstances, so not an error condition
 #ifdef DEBUG_PRINTF
-        Serial.println(F("WARNING: Couldn't find remote for received packet"));
+        DebugSerial.println(F("WARNING: Couldn't find remote for received packet"));
 #endif
         return;
       }
@@ -303,7 +304,7 @@ void applySettings() {
   radioFactory = MiLightRadioFactory::fromSettings(settings);
 
   if (radioFactory == NULL) {
-    Serial.println(F("ERROR: unable to construct radio factory"));
+    DebugSerial.println(F("ERROR: unable to construct radio factory"));
   }
 
   stateStore = new GroupStateStore(MILIGHT_MAX_STATE_ITEMS, settings.stateFlushInterval);
@@ -485,6 +486,7 @@ void postConnectSetup() {
 
   telnet.onInputReceived(onTelnetInput);
   telnet.begin(23);
+  DebugSerial.setTelnet(&telnet);
 
   transitions.addListener(
       [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
@@ -500,16 +502,16 @@ void postConnectSetup() {
 
   initMilightUdpServers();
 
-  Serial.printf("Setup complete (version %s)\n", QUOTE(MILIGHT_HUB_VERSION));
+  DebugSerial.printf("Setup complete (version %s)\n", QUOTE(MILIGHT_HUB_VERSION));
 }
 
 void setup() {
-  Serial.begin(9600);
+  DebugSerial.begin(9600);
   String ssid = "ESP" + String(getESPId());
 
   // load up our persistent settings from the file system
   if (! ProjectFS.begin()) {
-    Serial.println(F("Failed to mount file system, formatting..."));
+    DebugSerial.println(F("Failed to mount file system, formatting..."));
     ProjectFS.format();
     ProjectFS.begin();
   }
@@ -524,7 +526,7 @@ void setup() {
 
   // start up the wifi manager
   if (! MDNS.begin("milight-hub")) {
-    Serial.println(F("Error setting up MDNS responder"));
+    DebugSerial.println(F("Error setting up MDNS responder"));
   }
 
   // Allows us to have static IP config in the captive portal. Yucky pointers to pointers, just to have the settings carry through
@@ -573,7 +575,7 @@ void setup() {
 
   // We have a saved static IP, let's try and use it.
   if (settings.wifiStaticIP.length() > 0) {
-    Serial.printf("We have a static IP: %s\n", settings.wifiStaticIP.c_str());
+    DebugSerial.printf("We have a static IP: %s\n", settings.wifiStaticIP.c_str());
 
     IPAddress _ip, _subnet, _gw;
     _ip.fromString(settings.wifiStaticIP);
@@ -587,7 +589,7 @@ void setup() {
   wifiManager->setConfigPortalTimeoutCallback([]() {
       ledStatus->continuous(settings.ledModeWifiFailed);
 
-      Serial.println(F("Wifi config portal timed out.  Restarting..."));
+      DebugSerial.println(F("Wifi config portal timed out.  Restarting..."));
       delay(10000);
       ESP.restart();
   });
@@ -595,7 +597,7 @@ void setup() {
   if (wifiManager->autoConnect(ssid.c_str(), "milightHub")) {
     // set LED mode for successful operation
     ledStatus->continuous(settings.ledModeOperating);
-    Serial.println(F("Wifi connected succesfully\n"));
+    DebugSerial.println(F("Wifi connected succesfully\n"));
 
     // if the config portal was started, make sure to turn off the config AP
     WiFi.mode(WIFI_STA);
@@ -612,7 +614,7 @@ void loop() {
   ledStatus->handle();
 
   if (shouldRestart()) {
-    Serial.println(F("Auto-restart triggered. Restarting..."));
+    DebugSerial.println(F("Auto-restart triggered. Restarting..."));
     ESP.restart();
   }
 
@@ -654,7 +656,7 @@ void loop() {
   else if (initialized && WiFi.getMode() == WIFI_STA && !WiFi.isConnected()) {
     static unsigned long lastReconnectAttempt = 0;
     if (millis() - lastReconnectAttempt > 30000) {
-      Serial.println(F("WiFi disconnected. Attempting reconnection..."));
+      DebugSerial.println(F("WiFi disconnected. Attempting reconnection..."));
       WiFi.reconnect();
       lastReconnectAttempt = millis();
     }
@@ -665,14 +667,14 @@ void loop() {
   if (millis() - lastHeapCheck > 60000) {
     uint32_t freeHeap = ESP.getFreeHeap();
     if (freeHeap < 4096) {
-      Serial.print(F("CRITICAL: Free heap "));
-      Serial.print(freeHeap);
-      Serial.println(F(" bytes, restarting"));
+      DebugSerial.print(F("CRITICAL: Free heap "));
+      DebugSerial.print(freeHeap);
+      DebugSerial.println(F(" bytes, restarting"));
       ESP.restart();
     } else if (freeHeap < 8192) {
-      Serial.print(F("WARNING: Low free heap: "));
-      Serial.print(freeHeap);
-      Serial.println(F(" bytes"));
+      DebugSerial.print(F("WARNING: Low free heap: "));
+      DebugSerial.print(freeHeap);
+      DebugSerial.println(F(" bytes"));
     }
     lastHeapCheck = millis();
   }

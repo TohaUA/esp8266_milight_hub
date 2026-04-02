@@ -13,6 +13,7 @@
 #include "PL1167_nRF24.h"
 #include <RadioUtils.h>
 #include <MiLightRadioConfig.h>
+#include <DebugSerial.h>
 
 static uint16_t calc_crc(uint8_t *data, size_t data_length);
 
@@ -185,11 +186,11 @@ int PL1167_nRF24::internal_receive() {
 // The following code reads un-byte-aligned packet data.
 //
 // #ifdef DEBUG_PRINTF
-//   Serial.printf("Packet received (%d bytes) RAW: ", outp);
+//   DebugSerial.printf("Packet received (%d bytes) RAW: ", outp);
 //   for (int i = 0; i < _receive_length; i++) {
-//     Serial.printf("%02X ", tmp[i]);
+//     DebugSerial.printf("%02X ", tmp[i]);
 //   }
-//   Serial.print(F("\n"));
+//   DebugSerial.print(F("\n"));
 // #endif
 //
 //   uint16_t buffer = tmp[0];
@@ -205,16 +206,16 @@ int PL1167_nRF24::internal_receive() {
   }
 
 #ifdef DEBUG_PRINTF
-  Serial.printf("Packet received (%d bytes): ", outp);
+  DebugSerial.printf("Packet received (%d bytes): ", outp);
   for (int i = 0; i < outp; i++) {
-    Serial.printf("%02X ", tmp[i]);
+    DebugSerial.printf("%02X ", tmp[i]);
   }
-  Serial.print(F("\n"));
+  DebugSerial.print(F("\n"));
 #endif
 
   if (outp < 2) {
 #ifdef DEBUG_PRINTF
-    Serial.println(F("Failed CRC: outp < 2"));
+    DebugSerial.println(F("Failed CRC: outp < 2"));
 #endif
     return 0;
   }
@@ -224,7 +225,7 @@ int PL1167_nRF24::internal_receive() {
 
   if ( crc != recvCrc ) {
 #ifdef DEBUG_PRINTF
-    Serial.printf("Failed CRC: expected %04X, got %04X\n", crc, recvCrc);
+    DebugSerial.printf("Failed CRC: expected %04X, got %04X\n", crc, recvCrc);
 #endif
     return 0;
   }
@@ -236,7 +237,7 @@ int PL1167_nRF24::internal_receive() {
   _received = true;
 
 #ifdef DEBUG_PRINTF
-  Serial.printf("Successfully parsed packet of length %d\n", _packet_length);
+  DebugSerial.printf("Successfully parsed packet of length %d\n", _packet_length);
 #endif
 
   return outp;

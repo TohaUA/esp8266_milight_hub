@@ -1,5 +1,6 @@
 #include <Size.h>
 #include <RF24Channel.h>
+#include <DebugSerial.h>
 
 static const char* RF24_CHANNEL_NAMES[] = {
   "LOW",
@@ -11,7 +12,7 @@ String RF24ChannelHelpers::nameFromValue(const RF24Channel& value) {
   const size_t ix = static_cast<size_t>(value);
 
   if (ix >= size(RF24_CHANNEL_NAMES)) {
-    Serial.println(F("ERROR: unknown RF24 channel label - this is a bug!"));
+    DebugSerial.println(F("ERROR: unknown RF24 channel label - this is a bug!"));
     return nameFromValue(defaultValue());
   }
 
@@ -25,7 +26,7 @@ RF24Channel RF24ChannelHelpers::valueFromName(const String& name) {
     }
   }
 
-  Serial.printf("WARN: tried to fetch unknown RF24 channel: %s, using default.\n", name.c_str());
+  DebugSerial.printf("WARN: tried to fetch unknown RF24 channel: %s, using default.\n", name.c_str());
 
   return defaultValue();
 }

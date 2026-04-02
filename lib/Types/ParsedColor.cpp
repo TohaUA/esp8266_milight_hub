@@ -3,6 +3,7 @@
 #include <TokenIterator.h>
 #include <GroupStateField.h>
 #include <IntParsing.h>
+#include <DebugSerial.h>
 
 ParsedColor ParsedColor::fromRgb(uint16_t r, uint16_t g, uint16_t b) {
   double hsv[3];
@@ -57,7 +58,7 @@ ParsedColor ParsedColor::fromJson(JsonVariant json) {
       b = parsedRgbColors[2];
     }
   } else {
-    Serial.println(F("GroupState::parseJsonColor - unknown format for color"));
+    DebugSerial.println(F("GroupState::parseJsonColor - unknown format for color"));
     return ParsedColor{ .success = false };
   }
 

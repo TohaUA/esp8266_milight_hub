@@ -11,6 +11,7 @@
 
 #include "LT8900MiLightRadio.h"
 #include <SPI.h>
+#include <DebugSerial.h>
 
 /**************************************************************************/
 // Constructor
@@ -73,14 +74,14 @@ bool LT8900MiLightRadio::bCheckRadioConnection(void)
 	if ((value_0 == 0x6fe0) && (value_1 == 0x5681))
 	{
     #ifdef DEBUG_PRINTF
-		  Serial.println(F("Radio module running correctly..."));
+		  DebugSerial.println(F("Radio module running correctly..."));
     #endif
 		bRetValue = true;
 	}
 	else
 	{
     #ifdef DEBUG_PRINTF
-		  Serial.println(F("Failed initializing the radio module..."));
+		  DebugSerial.println(F("Failed initializing the radio module..."));
     #endif
 	}
 
@@ -240,7 +241,7 @@ bool LT8900MiLightRadio::bAvailableRegister() {
 
   if (bitRead(value, STATUS_CRC_BIT) != 0) {
 #ifdef DEBUG_PRINTF
-    Serial.println(F("LT8900: CRC failed"));
+    DebugSerial.println(F("LT8900: CRC failed"));
 #endif
     vResumeRX();
     return false;
@@ -349,7 +350,7 @@ int LT8900MiLightRadio::read(uint8_t frame[], size_t &frame_length)
   }
 
   #ifdef DEBUG_PRINTF
-  Serial.println(F("LT8900: Radio was available, reading packet..."));
+  DebugSerial.println(F("LT8900: Radio was available, reading packet..."));
   #endif
 
   uint8_t buf[MILIGHT_MAX_PACKET_LENGTH];
