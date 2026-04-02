@@ -290,7 +290,11 @@ void applySettings() {
     ledStatus->continuous(settings.ledModeOperating);
   }
 
+#ifdef ESP8266
   WiFi.hostname(settings.hostname);
+#elif defined(ESP32)
+  WiFi.setHostname(settings.hostname.c_str());
+#endif
 #ifdef ESP8266
   WiFiPhyMode_t wifiPhyMode;
 switch (settings.wifiMode) {
