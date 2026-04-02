@@ -122,17 +122,17 @@ bool ColorTransition::isFinished() {
 void ColorTransition::childSerialize(JsonObject& json) {
   json[F("type")] = F("color");
 
-  JsonArray currentColorArr = json.createNestedArray(F("current_color"));
+  JsonArray currentColorArr = json[F("current_color")].to<JsonArray>();
   currentColorArr.add(currentColor.r);
   currentColorArr.add(currentColor.g);
   currentColorArr.add(currentColor.b);
 
-  JsonArray endColorArr = json.createNestedArray(F("end_color"));
+  JsonArray endColorArr = json[F("end_color")].to<JsonArray>();
   endColorArr.add(endColor.r);
   endColorArr.add(endColor.g);
   endColorArr.add(endColor.b);
 
-  JsonArray stepSizesArr = json.createNestedArray(F("step_sizes"));
+  JsonArray stepSizesArr = json[F("step_sizes")].to<JsonArray>();
   stepSizesArr.add(stepSizes.r);
   stepSizesArr.add(stepSizes.g);
   stepSizesArr.add(stepSizes.b);

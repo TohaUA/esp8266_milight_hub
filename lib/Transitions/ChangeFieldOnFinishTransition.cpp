@@ -55,6 +55,6 @@ void ChangeFieldOnFinishTransition::childSerialize(JsonObject& json) {
   json[F("field")] = GroupStateFieldHelpers::getFieldName(field);
   json[F("value")] = arg;
 
-  JsonObject child = json.createNestedObject(F("child"));
+  JsonObject child = json[F("child")].to<JsonObject>();
   delegate->childSerialize(child);
 }

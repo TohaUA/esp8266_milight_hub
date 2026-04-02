@@ -179,7 +179,7 @@ void Transition::serialize(JsonObject& json) {
   json[F("period")] = period;
   json[F("last_sent")] = lastSent;
 
-  JsonObject bulbParams = json.createNestedObject("bulb");
+  JsonObject bulbParams = json["bulb"].to<JsonObject>();
   bulbId.serialize(bulbParams);
 
   childSerialize(json);

@@ -817,7 +817,7 @@ void GroupState::applyColor(JsonObject state) const {
 }
 
 void GroupState::applyColor(JsonObject state, uint8_t r, uint8_t g, uint8_t b) const {
-  JsonObject color = state.createNestedObject(GroupStateFieldNames::COLOR);
+  JsonObject color = state[GroupStateFieldNames::COLOR].to<JsonObject>();
   color["r"] = r;
   color["g"] = g;
   color["b"] = b;
@@ -979,7 +979,7 @@ void GroupState::applyField(JsonObject partialState, const BulbId& bulbId, Group
 void GroupState::debugState(char const *debugMessage) const {
 #ifdef STATE_DEBUG
   // using static to keep large buffers off the call stack
-  StaticJsonDocument<500> jsonDoc;
+  JsonDocument jsonDoc;
   JsonObject jsonState = jsonDoc.to<JsonObject>();
 
   // define fields to show (if count changes, make sure to update count to applyState below)
