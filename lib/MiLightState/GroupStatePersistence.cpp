@@ -25,13 +25,19 @@ void GroupStatePersistence::set(const BulbId &id, const GroupState& state) {
   memset(path, 0, 30);
   buildFilename(id, path);
 
-  File f = ProjectFS.open(path, "w");
+  char tmpPath[35];
+  snprintf(tmpPath, sizeof(tmpPath), "%s.tmp", path);
+
+  File f = ProjectFS.open(tmpPath, "w");
   if (!f) {
-    Serial.printf_P(PSTR("Failed to open state file for writing: %s\n"), path);
+    Serial.printf_P(PSTR("Failed to open state temp file: %s\n"), tmpPath);
     return;
   }
   state.dump(f);
   f.close();
+
+  ProjectFS.remove(path);
+  ProjectFS.rename(tmpPath, path);
 }
 
 void GroupStatePersistence::clear(const BulbId &id) {
