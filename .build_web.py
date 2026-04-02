@@ -17,7 +17,7 @@ def is_tool(name):
 
 def build_web():
     if is_tool("npm"):
-        os.chdir("web2")
+        os.chdir("web")
         print("Attempting to build webpage...")
         try:
             if platform.system() == "Windows":

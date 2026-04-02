@@ -278,7 +278,7 @@ Another option is to use an external LED parallel to the (inverted) internal one
 
 This project is developed and built using [PlatformIO](https://platformio.org/).
 
-The Web UI is [documented here](./web2/README.md).
+The Web UI is [documented here](./web/README.md).
 
 #### Running tests
 

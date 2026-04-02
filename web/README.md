@@ -31,7 +31,7 @@ This does two things:
 
 ### API Client
 
-The API client in `web2/api` is generated from the openapi spec using `openapi-zod-client`. Run it with this command:
+The API client in `web/api` is generated from the openapi spec using `openapi-zod-client`. Run it with this command:
 
 ```bash
 openapi-zod-client ../docs/openapi.yaml -o ./api/api-zod.ts --with-description --export-schemas
@@ -45,7 +45,7 @@ I've landed on this solution:
 
 1. Serve the compiled files from a jsdelivr github mirror. The web UI will attempt to load the appropriate compiled artifacts from here by default using the appropraite git tag, e.g.:
    ```
-   https://cdn.jsdelivr.net/gh/sidoh/esp8266_milight_hub@latest/web2/dist/versions/<version>/bundle.js
+   https://cdn.jsdelivr.net/gh/TohaUA/esp8266_milight_hub@latest/web/dist/versions/<version>/bundle.js
    ```
 2. If that fails, some embedded javascript in the web UI will attempt to load the bundle from the ESP8266.
 3. These files are cached indefinitely using a `Cache-Control: max-age=31536000` header.
