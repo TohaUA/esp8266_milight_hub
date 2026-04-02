@@ -332,7 +332,9 @@ bool shouldRestart() {
     return false;
   }
 
-  return settings.getAutoRestartPeriod()*60*1000 < millis();
+  // Use unsigned long to prevent overflow in multiplication
+  unsigned long periodMs = (unsigned long)settings.getAutoRestartPeriod() * 60UL * 1000UL;
+  return millis() >= periodMs;
 }
 
 void wifiExtraSettingsChange() {
