@@ -353,7 +353,7 @@ void wifiExtraSettingsChange() {
 }
 
 void aboutHandler(JsonDocument& json) {
-  JsonObject mqtt = json.createNestedObject(FPSTR("mqtt"));
+  JsonObject mqtt = json[FPSTR("mqtt")].to<JsonObject>();
   mqtt[FPSTR("configured")] = (mqttClient != nullptr);
 
   if (mqttClient) {
