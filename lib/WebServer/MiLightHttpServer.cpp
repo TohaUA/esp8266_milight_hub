@@ -221,7 +221,7 @@ void MiLightHttpServer::handleAbout(RequestContext& request) {
     this->aboutHandler(request.response.json);
   }
 
-  JsonObject queueStats = request.response.json.createNestedObject("queue_stats");
+  JsonObject queueStats = request.response.json["queue_stats"].to<JsonObject>();
   queueStats[F("length")] = packetSender->queueLength();
   queueStats[F("dropped_packets")] = packetSender->droppedPackets();
 }
@@ -669,24 +669,24 @@ void MiLightHttpServer::handleWsEvent(uint8_t num, WStype_t type, uint8_t *paylo
 
 void MiLightHttpServer::handlePacketSent(uint8_t *packet, const MiLightRemoteConfig& config, const BulbId& bulbId, const JsonObject& result) {
   if (numWsClients > 0) {
-    DynamicJsonDocument output(1024);
+    JsonDocument output;
 
     output[F("t")] = F("packet");
     output[F("u")].set(result);
 
-    JsonObject device = output.createNestedObject(F("d"));
+    JsonObject device = output[F("d")].to<JsonObject>();
     device[F("di")] = bulbId.deviceId;
     device[F("gi")] = bulbId.groupId;
     device[F("rt")] = MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType);
 
-    JsonArray responsePacket = output.createNestedArray(F("p"));
+    JsonArray responsePacket = output[F("p")].to<JsonArray>();
     for (size_t i = 0; i < config.packetFormatter->getPacketLength(); ++i) {
       responsePacket.add(packet[i]);
     }
 
     const GroupState* bulbState = this->stateStore->get(bulbId);
     if (bulbState != nullptr) {
-      JsonObject state = output.createNestedObject(F("s"));
+      JsonObject state = output[F("s")].to<JsonObject>();
       bulbState->applyState(state, bulbId, NORMALIZED_GROUP_STATE_FIELDS);
     }
 
@@ -753,10 +753,10 @@ void MiLightHttpServer::handleDeleteTransition(RequestContext& request) {
 
 void MiLightHttpServer::handleListTransitions(RequestContext& request) {
   auto current = transitions.getTransitions();
-  JsonArray transitions = request.response.json.to<JsonObject>().createNestedArray(F("transitions"));
+  JsonArray transitions = request.response.json.to<JsonObject>()[F("transitions")].to<JsonArray>();
 
   while (current != nullptr) {
-    JsonObject json = transitions.createNestedObject();
+    JsonObject json = transitions.add<JsonObject>();
     current->data->serialize(json);
     current = current->next;
   }
@@ -821,7 +821,7 @@ void MiLightHttpServer::handleListAliases(RequestContext& request) {
     return;
   } 
 
-  JsonArray aliases = request.response.json.to<JsonObject>().createNestedArray(F("aliases"));
+  JsonArray aliases = request.response.json.to<JsonObject>()[F("aliases")].to<JsonArray>();
   request.response.json[F("page")] = page;
   request.response.json[F("count")] = settings.groupIdAliases.size();
   request.response.json[F("num_pages")] = numPages;
@@ -835,7 +835,7 @@ void MiLightHttpServer::handleListAliases(RequestContext& request) {
   std::advance(it, offset);
 
   for (size_t i = 0; i < perPage && it != settings.groupIdAliases.end(); i++, it++) {
-    JsonObject alias = aliases.createNestedObject();
+    JsonObject alias = aliases.add<JsonObject>();
     alias[F("alias")] = it->first;
     alias[F("id")] = it->second.id;
 
@@ -1029,7 +1029,7 @@ void MiLightHttpServer::handleListGroups() {
   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
   server.send(200, "application/json");
 
-  StaticJsonDocument<1024> stateBuffer;
+  JsonDocument stateBuffer;
   WiFiClient client = server.client();
 
   // open array
@@ -1039,7 +1039,7 @@ void MiLightHttpServer::handleListGroups() {
   for (auto & group : settings.groupIdAliases) {
     stateBuffer.clear();
 
-    JsonObject device = stateBuffer.createNestedObject(F("device"));
+    JsonObject device = stateBuffer[F("device")].to<JsonObject>();
 
     device[F("alias")] = group.first;
     device[F("id")] = group.second.id;
@@ -1048,7 +1048,7 @@ void MiLightHttpServer::handleListGroups() {
     device[F("device_type")] = MiLightRemoteTypeHelpers::remoteTypeToString(group.second.bulbId.deviceType);
     
     GroupState* state = this->stateStore->get(group.second.bulbId);
-    JsonObject outputState = stateBuffer.createNestedObject(F("state"));
+    JsonObject outputState = stateBuffer[F("state")].to<JsonObject>();
 
     if (state != nullptr) {
       state->applyState(outputState, group.second.bulbId, NORMALIZED_GROUP_STATE_FIELDS);
