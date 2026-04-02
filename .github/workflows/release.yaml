@@ -35,7 +35,7 @@ jobs:
           redoc-cli validate ./docs/openapi.yaml
 
       - name: Install PlatformIO Core
-        run: pip install --upgrade platformio
+        run: pip install --upgrade platformio intelhex
 
       - name: Build PlatformIO Project
         run: pio run
