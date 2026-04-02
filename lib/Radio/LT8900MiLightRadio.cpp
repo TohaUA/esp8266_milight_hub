@@ -434,10 +434,13 @@ bool LT8900MiLightRadio::sendPacket(uint8_t *data, size_t packetSize, byte byCha
 
     uiWriteRegister(R_CHANNEL,  (byChannel & CHANNEL_MASK) | _BV(CHANNEL_TX_BIT));   //enable RX
 
-    //Wait until the packet is sent.
-    while (digitalRead(_pin_pktflag) == 0)
-    {
-        //do nothing.
+    //Wait until the packet is sent, with timeout.
+    unsigned long txStart = millis();
+    while (digitalRead(_pin_pktflag) == 0) {
+      if (millis() - txStart > 100) {
+        return false;
+      }
+      yield();
     }
 
     return true;
