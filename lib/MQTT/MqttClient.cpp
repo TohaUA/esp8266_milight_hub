@@ -348,7 +348,7 @@ String MqttClient::generateConnectionStatusMessage(const char* connectionStatus)
       return "disconnected";
     }
   } else {
-    StaticJsonDocument<1024> json;
+    StaticJsonDocument<256> json;
     json[GroupStateFieldNames::STATUS] = connectionStatus;
 
     // Fill other fields
