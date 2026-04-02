@@ -561,6 +561,10 @@ void loop() {
 
     handleListen();
 
+#ifdef ESP8266
+    MDNS.update();
+#endif
+
     stateStore->limitedFlush();
     packetSender->loop();
 
