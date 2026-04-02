@@ -3,7 +3,7 @@
 #include <Units.h>
 #ifdef ESP8266
   #include <ESP8266WiFi.h>
-#elif ESP32
+#elif defined(ESP32)
   #include <WiFi.h>
 #endif
 
@@ -48,7 +48,7 @@ void HomeAssistantDiscoveryClient::addConfig(const char* alias, const BulbId& bu
 
   // String to ID the firmware version
   char fwVersion[100];
-  snprintf_P(fwVersion, sizeof(fwVersion), PSTR("esp8266_milight_hub v%s"), QUOTE(MILIGHT_HUB_VERSION));
+  snprintf_P(fwVersion, sizeof(fwVersion), PSTR("%s v%s"), QUOTE(FIRMWARE_NAME), QUOTE(MILIGHT_HUB_VERSION));
 
   // URL to the device
   char deviceUrl[23];
