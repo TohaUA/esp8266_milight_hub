@@ -380,8 +380,14 @@ void MiLightHttpServer::handleListenGateway(RequestContext& request) {
     radio = radios->switchRadio(tmpRemoteConfig);
   }
 
+  unsigned long listenStart = millis();
   while (remoteConfig == NULL) {
     if (!server.client().connected()) {
+      return;
+    }
+    if (millis() - listenStart > 30000) {
+      request.response.setCode(408);
+      request.response.json[F("error")] = F("Timeout waiting for packet");
       return;
     }
 
