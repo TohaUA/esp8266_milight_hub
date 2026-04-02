@@ -2,31 +2,29 @@
 #define _GROUP_STATE_FIELDS_H
 
 namespace GroupStateFieldNames {
-  static const char UNKNOWN[] = "unknown";
-  static const char STATE[] = "state";
-  static const char STATUS[] = "status";
-  static const char BRIGHTNESS[] = "brightness";
-  static const char LEVEL[] = "level";
-  static const char HUE[] = "hue";
-  static const char SATURATION[] = "saturation";
-  static const char COLOR[] = "color";
-  static const char MODE[] = "mode";
-  static const char KELVIN[] = "kelvin";
-  static const char TEMPERATURE[] = "temperature"; //alias for kelvin
-  static const char COLOR_TEMP[] = "color_temp";
-  static const char BULB_MODE[] = "bulb_mode";
-  static const char COMPUTED_COLOR[] = "computed_color";
-  static const char EFFECT[] = "effect";
-  static const char DEVICE_ID[] = "device_id";
-  static const char GROUP_ID[] = "group_id";
-  static const char DEVICE_TYPE[] = "device_type";
-  static const char OH_COLOR[] = "oh_color";
-  static const char HEX_COLOR[] = "hex_color";
-  static const char COMMAND[] = "command";
-  static const char COMMANDS[] = "commands";
-
-  // For use with HomeAssistant
-  static const char COLOR_MODE[] = "color_mode";
+  extern const char UNKNOWN[];
+  extern const char STATE[];
+  extern const char STATUS[];
+  extern const char BRIGHTNESS[];
+  extern const char LEVEL[];
+  extern const char HUE[];
+  extern const char SATURATION[];
+  extern const char COLOR[];
+  extern const char MODE[];
+  extern const char KELVIN[];
+  extern const char TEMPERATURE[];
+  extern const char COLOR_TEMP[];
+  extern const char BULB_MODE[];
+  extern const char COMPUTED_COLOR[];
+  extern const char EFFECT[];
+  extern const char DEVICE_ID[];
+  extern const char GROUP_ID[];
+  extern const char DEVICE_TYPE[];
+  extern const char OH_COLOR[];
+  extern const char HEX_COLOR[];
+  extern const char COMMAND[];
+  extern const char COMMANDS[];
+  extern const char COLOR_MODE[];
 };
 
 enum class GroupStateField {

@@ -1,6 +1,32 @@
 #include <GroupStateField.h>
 #include <Size.h>
 
+namespace GroupStateFieldNames {
+  const char UNKNOWN[] = "unknown";
+  const char STATE[] = "state";
+  const char STATUS[] = "status";
+  const char BRIGHTNESS[] = "brightness";
+  const char LEVEL[] = "level";
+  const char HUE[] = "hue";
+  const char SATURATION[] = "saturation";
+  const char COLOR[] = "color";
+  const char MODE[] = "mode";
+  const char KELVIN[] = "kelvin";
+  const char TEMPERATURE[] = "temperature";
+  const char COLOR_TEMP[] = "color_temp";
+  const char BULB_MODE[] = "bulb_mode";
+  const char COMPUTED_COLOR[] = "computed_color";
+  const char EFFECT[] = "effect";
+  const char DEVICE_ID[] = "device_id";
+  const char GROUP_ID[] = "group_id";
+  const char DEVICE_TYPE[] = "device_type";
+  const char OH_COLOR[] = "oh_color";
+  const char HEX_COLOR[] = "hex_color";
+  const char COMMAND[] = "command";
+  const char COMMANDS[] = "commands";
+  const char COLOR_MODE[] = "color_mode";
+}
+
 static const char* STATE_NAMES[] = {
   GroupStateFieldNames::UNKNOWN,
   GroupStateFieldNames::STATE,
