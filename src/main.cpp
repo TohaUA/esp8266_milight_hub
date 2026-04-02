@@ -22,6 +22,8 @@
 #include <HomeAssistantDiscoveryClient.h>
 #include <TransitionController.h>
 #include <ProjectWifi.h>
+#include <ESPTelnet.h>
+#include <AboutHelper.h>
 
 #include <ESPId.h>
 
@@ -62,6 +64,8 @@ uint8_t currentRadioType = 0;
 GroupStateStore* stateStore = NULL;
 BulbStateUpdater* bulbStateUpdater = NULL;
 TransitionController transitions;
+
+ESPTelnet telnet;
 
 std::vector<std::shared_ptr<MiLightUdpServer>> udpServers;
 
@@ -427,6 +431,29 @@ void onGroupDeleted(const BulbId& id) {
   }
 }
 
+void onTelnetInput(String input) {
+  input.trim();
+  if (input == "heap") {
+    telnet.printf("Free heap: %u bytes\n", ESP.getFreeHeap());
+  } else if (input == "status") {
+    String about = AboutHelper::generateAboutString(false);
+    telnet.println(about);
+  } else if (input == "uptime") {
+    telnet.printf("Uptime: %lu ms\n", millis());
+  } else if (input == "sync") {
+    if (bulbStateUpdater != NULL) {
+      bulbStateUpdater->syncAll();
+      telnet.println(F("MQTT state sync triggered"));
+    } else {
+      telnet.println(F("MQTT not configured"));
+    }
+  } else if (input == "help") {
+    telnet.println(F("Commands: heap, status, uptime, sync, help"));
+  } else {
+    telnet.println(F("Unknown command. Type 'help' for list."));
+  }
+}
+
 bool initialized = false;
 void postConnectSetup() {
   if (initialized) return;
@@ -455,6 +482,9 @@ void postConnectSetup() {
   if (bulbStateUpdater != NULL) {
     httpServer->setBulbStateUpdater(bulbStateUpdater);
   }
+
+  telnet.onInputReceived(onTelnetInput);
+  telnet.begin(23);
 
   transitions.addListener(
       [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
@@ -618,6 +648,8 @@ void loop() {
     packetSender->loop();
 
     transitions.loop();
+
+    telnet.loop();
   }
   else if (initialized && WiFi.getMode() == WIFI_STA && !WiFi.isConnected()) {
     static unsigned long lastReconnectAttempt = 0;
