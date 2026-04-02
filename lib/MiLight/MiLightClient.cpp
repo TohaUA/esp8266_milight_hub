@@ -472,9 +472,9 @@ void MiLightClient::handleTransition(GroupStateField field, JsonVariant value, f
     return;
   }
 
-  if (!currentState->isSetField(field)) {
-    Serial.println(F("Error planning transition: current state for field could not be determined"));
-    return;
+  if (!currentState->isSetField(field) && startValue == FETCH_VALUE_FROM_STATE) {
+    // Field not set yet -- default to 0 as start value
+    startValue = 0;
   }
 
   if (field == GroupStateField::COLOR) {
