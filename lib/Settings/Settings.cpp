@@ -290,27 +290,33 @@ bool Settings::load(Settings& settings) {
 }
 
 void Settings::save() {
-  File f = ProjectFS.open(SETTINGS_FILE, "w");
+  File f = ProjectFS.open("/config.json.tmp", "w");
 
   if (!f) {
-    Serial.println(F("Opening settings file failed"));
+    Serial.println(F("Opening settings temp file failed"));
     return;
   } else {
     WriteBufferingStream writer{f, 64};
     serialize(writer);
     writer.flush();
     f.close();
+
+    ProjectFS.remove(SETTINGS_FILE);
+    ProjectFS.rename("/config.json.tmp", SETTINGS_FILE);
   }
 
-  File aliasesFile = ProjectFS.open(ALIASES_FILE, "w");
+  File aliasesFile = ProjectFS.open("/aliases.bin.tmp", "w");
 
   if (!aliasesFile) {
-    Serial.println(F("Opening aliases file failed"));
+    Serial.println(F("Opening aliases temp file failed"));
   } else {
     WriteBufferingStream aliases{aliasesFile, 64};
     GroupAlias::saveAliases(aliases, groupIdAliases);
     aliases.flush();
     aliasesFile.close();
+
+    ProjectFS.remove(ALIASES_FILE);
+    ProjectFS.rename("/aliases.bin.tmp", ALIASES_FILE);
   }
 }
 
