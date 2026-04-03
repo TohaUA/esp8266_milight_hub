@@ -176,7 +176,10 @@ void MqttClient::subscribe() {
   printf("MqttClient - subscribing to topic: %s\n", topic.c_str());
 #endif
 
-  mqttClient.subscribe(topic.c_str());
+  bool success = mqttClient.subscribe(topic.c_str(), 1);
+  if (!success) {
+    DebugSerial.println(F("ERROR: MQTT subscribe failed"));
+  }
 }
 
 void MqttClient::send(const char* topic, const char* message, const bool retain) {
