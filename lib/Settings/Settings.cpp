@@ -73,10 +73,10 @@ void Settings::updateGatewayConfigs(JsonArray arr) {
   }
 }
 
-void Settings::patch(JsonObject parsedSettings) {
+String Settings::patch(JsonObject parsedSettings) {
   if (parsedSettings.isNull()) {
     DebugSerial.println(F("Skipping patching loaded settings.  Parsed settings was null."));
-    return;
+    return String();
   }
 
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_USERNAME), adminUsername);
@@ -170,6 +170,8 @@ void Settings::patch(JsonObject parsedSettings) {
   if (parsedSettings.containsKey(FPSTR(SettingsKeys::GROUP_ID_ALIASES))) {
     parseGroupIdAliases(parsedSettings);
   }
+
+  return String();
 }
 
 std::map<String, GroupAlias>::const_iterator Settings::findAlias(MiLightRemoteType deviceType, uint16_t deviceId, uint8_t groupId) {

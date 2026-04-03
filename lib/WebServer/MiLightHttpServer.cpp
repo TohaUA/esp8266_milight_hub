@@ -269,7 +269,13 @@ void MiLightHttpServer::handleUpdateSettings(RequestContext& request) {
   JsonObject parsedSettings = request.getJsonBody().as<JsonObject>();
 
   if (! parsedSettings.isNull()) {
-    settings.patch(parsedSettings);
+    String error = settings.patch(parsedSettings);
+    if (error.length() > 0) {
+      request.response.setCode(400);
+      request.response.json[F("success")] = false;
+      request.response.json[F("error")] = error;
+      return;
+    }
     saveSettings();
 
     request.response.json["success"] = true;
@@ -1004,14 +1010,39 @@ void MiLightHttpServer::handleSyncMqtt(RequestContext& request) {
 
 void MiLightHttpServer::handleRestoreBackup(RequestContext &request) {
   File backupFile = ProjectFS.open(BACKUP_FILE, "r");
+
+  if (!backupFile) {
+    request.response.setCode(400);
+    request.response.json[F("success")] = false;
+    request.response.json[F("message")] = F("Failed to open uploaded backup file");
+    return;
+  }
+
   auto status = BackupManager::restoreBackup(settings, backupFile);
+  backupFile.close();
+  ProjectFS.remove(BACKUP_FILE);
 
   if (status == BackupManager::RestoreStatus::OK) {
     request.response.json[F("success")] = true;
     request.response.json[F("message")] = F("Backup restored successfully");
   } else {
     request.response.setCode(400);
-    request.response.json[F("error")] = static_cast<uint8_t>(status);
+    request.response.json[F("success")] = false;
+
+    switch (status) {
+      case BackupManager::RestoreStatus::INVALID_JSON:
+        request.response.json[F("message")] = F("Invalid backup file: not valid JSON");
+        break;
+      case BackupManager::RestoreStatus::MISSING_SETTINGS:
+        request.response.json[F("message")] = F("Invalid backup file: missing 'settings' key");
+        break;
+      case BackupManager::RestoreStatus::INVALID_SETTINGS:
+        request.response.json[F("message")] = F("Invalid backup file: settings contain invalid values");
+        break;
+      default:
+        request.response.json[F("message")] = F("Failed to restore backup");
+        break;
+    }
   }
 }
 
@@ -1032,7 +1063,7 @@ void MiLightHttpServer::handleCreateBackup(RequestContext &request) {
 
   backupFile = ProjectFS.open(BACKUP_FILE, "r");
   DebugSerial.printf("Sending backup file of size %d\n", backupFile.size());
-  server.streamFile(backupFile, APPLICATION_OCTET_STREAM);
+  server.streamFile(backupFile, APPLICATION_JSON);
 
   ProjectFS.remove(BACKUP_FILE);
 }

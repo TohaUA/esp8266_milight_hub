@@ -50,7 +50,7 @@
 #define SETTINGS_FILE  "/config.json"
 #define SETTINGS_TERMINATOR '\0'
 #define ALIASES_FILE "/aliases.bin"
-#define BACKUP_FILE "/backup.bin"
+#define BACKUP_FILE "/backup.json"
 
 #define WEB_INDEX_FILENAME "/web/index.html"
 
@@ -199,7 +199,7 @@ public:
   void serialize(Print& stream, const bool prettyPrint = false) const;
   void updateDeviceIds(JsonArray arr);
   void updateGatewayConfigs(JsonArray arr);
-  void patch(JsonObject obj);
+  String patch(JsonObject obj);
   String mqttServer();
   uint16_t mqttPort();
   std::map<String, GroupAlias>::const_iterator findAlias(MiLightRemoteType deviceType, uint16_t deviceId, uint8_t groupId);
