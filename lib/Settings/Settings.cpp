@@ -138,6 +138,26 @@ String Settings::validate(JsonObject obj) const {
   if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP), 15)).length()) return err;
   if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), 15)).length()) return err;
   if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), 15)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID), 32)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD), 63)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID_SECONDARY), 32)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY), 63)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_DNS), 15)).length()) return err;
+
+  // Secondary WiFi requires primary
+  if (obj.containsKey(FPSTR(SettingsKeys::WIFI_SSID_SECONDARY))) {
+    const char* secondary = obj[FPSTR(SettingsKeys::WIFI_SSID_SECONDARY)].as<const char*>();
+    if (secondary && strlen(secondary) > 0) {
+      // Check if primary is being set in same request, or already configured
+      const char* primary = nullptr;
+      if (obj.containsKey(FPSTR(SettingsKeys::WIFI_SSID))) {
+        primary = obj[FPSTR(SettingsKeys::WIFI_SSID)].as<const char*>();
+      }
+      if ((!primary || strlen(primary) == 0) && wifiSsid.length() == 0) {
+        return F("wifi_ssid_secondary: primary wifi_ssid must be set first");
+      }
+    }
+  }
 
   // hostname: 1-63 chars
   if (obj.containsKey(FPSTR(SettingsKeys::HOSTNAME))) {
@@ -352,6 +372,18 @@ String Settings::patch(JsonObject parsedSettings) {
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP), wifiStaticIP);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), wifiStaticIPGateway);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), wifiStaticIPNetmask);
+  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_SSID), wifiSsid);
+  if (parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD))
+      && strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD)].as<const char*>(), "***") != 0) {
+    this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PASSWORD), wifiPassword);
+  }
+  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_SSID_SECONDARY), wifiSsidSecondary);
+  if (parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY))
+      && strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)].as<const char*>(), "***") != 0) {
+    this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY), wifiPasswordSecondary);
+  }
+  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_DNS), wifiDns);
+  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PORTAL_ON_FAIL), wifiPortalOnFail);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP), packetRepeatsPerLoop);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), homeAssistantDiscoveryPrefix);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD), defaultTransitionPeriod);
@@ -606,6 +638,12 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP)] = this->wifiStaticIP;
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY)] = this->wifiStaticIPGateway;
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK)] = this->wifiStaticIPNetmask;
+  root[FPSTR(SettingsKeys::WIFI_SSID)] = this->wifiSsid;
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD)] = this->wifiPassword.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::WIFI_SSID_SECONDARY)] = this->wifiSsidSecondary;
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)] = this->wifiPasswordSecondary.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::WIFI_DNS)] = this->wifiDns;
+  root[FPSTR(SettingsKeys::WIFI_PORTAL_ON_FAIL)] = this->wifiPortalOnFail;
   root[FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP)] = this->packetRepeatsPerLoop;
   root[FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX)] = this->homeAssistantDiscoveryPrefix;
   root[FPSTR(SettingsKeys::WIFI_MODE)] = wifiModeToString(this->wifiMode);
