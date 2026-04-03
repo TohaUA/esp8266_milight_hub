@@ -18,7 +18,13 @@ import { SystemSettings } from "./section-system";
 import { RadioSettings } from "./section-radio";
 import { StateSettings } from "./section-state";
 import { UDPSettings } from "./section-udp";
-import { debounce } from "lodash";
+function debounce<T extends (...args: any[]) => any>(fn: T, ms: number): T {
+  let timer: ReturnType<typeof setTimeout>;
+  return ((...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  }) as any as T;
+}
 import { useSettings } from "@/lib/settings";
 
 type Settings = z.infer<typeof schemas.Settings>;
