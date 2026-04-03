@@ -1,45 +1,45 @@
 #ifndef UNIT_TEST
 
-#include <WiFiManager.h>
-#include <ArduinoJson.h>
-#include <cstdlib>
-#include <FS.h>
-#include <IntParsing.h>
-#include <LinkedList.h>
-#include <LEDStatus.h>
-#include <GroupStateStore.h>
-#include <MiLightRadioConfig.h>
-#include <MiLightRemoteConfig.h>
-#include <MiLightHttpServer.h>
-#include <Settings.h>
-#include <MiLightUdpServer.h>
-#include <MqttClient.h>
-#include <MiLightDiscoveryServer.h>
-#include <MiLightClient.h>
-#include <BulbStateUpdater.h>
-#include <RadioSwitchboard.h>
-#include <PacketSender.h>
-#include <HomeAssistantDiscoveryClient.h>
-#include <TransitionController.h>
-#include <ProjectWifi.h>
-#include <ESPTelnet.h>
-#include <DebugSerial.h>
-#include <AboutHelper.h>
+#  include <WiFiManager.h>
+#  include <ArduinoJson.h>
+#  include <cstdlib>
+#  include <FS.h>
+#  include <IntParsing.h>
+#  include <LinkedList.h>
+#  include <LEDStatus.h>
+#  include <GroupStateStore.h>
+#  include <MiLightRadioConfig.h>
+#  include <MiLightRemoteConfig.h>
+#  include <MiLightHttpServer.h>
+#  include <Settings.h>
+#  include <MiLightUdpServer.h>
+#  include <MqttClient.h>
+#  include <MiLightDiscoveryServer.h>
+#  include <MiLightClient.h>
+#  include <BulbStateUpdater.h>
+#  include <RadioSwitchboard.h>
+#  include <PacketSender.h>
+#  include <HomeAssistantDiscoveryClient.h>
+#  include <TransitionController.h>
+#  include <ProjectWifi.h>
+#  include <ESPTelnet.h>
+#  include <DebugSerial.h>
+#  include <AboutHelper.h>
 
-#include <ESPId.h>
+#  include <ESPId.h>
 
-#ifdef ESP8266
-  #include <ESP8266mDNS.h>
-  #include <ESP8266SSDP.h>
-#elif defined(ESP32)
-  #include "ESP32SSDP.h"
-  #include <esp_wifi.h>
-  #include <ESPmDNS.h>
-#endif
+#  ifdef ESP8266
+#    include <ESP8266mDNS.h>
+#    include <ESP8266SSDP.h>
+#  elif defined(ESP32)
+#    include "ESP32SSDP.h"
+#    include <esp_wifi.h>
+#    include <ESPmDNS.h>
+#  endif
 
-#include <vector>
-#include <memory>
-#include "ProjectFS.h"
+#  include <vector>
+#  include <memory>
+#  include "ProjectFS.h"
 
 WiFiManager* wifiManager;
 // because of callbacks, these need to be in the higher scope :(
@@ -48,7 +48,7 @@ WiFiManagerParameter* wifiStaticIPNetmask = NULL;
 WiFiManagerParameter* wifiStaticIPGateway = NULL;
 WiFiManagerParameter* wifiMode = NULL;
 
-static LEDStatus *ledStatus;
+static LEDStatus* ledStatus;
 
 Settings settings;
 
@@ -56,7 +56,7 @@ MiLightClient* milightClient = NULL;
 RadioSwitchboard* radios = nullptr;
 PacketSender* packetSender = nullptr;
 std::shared_ptr<MiLightRadioFactory> radioFactory;
-MiLightHttpServer *httpServer = NULL;
+MiLightHttpServer* httpServer = NULL;
 MqttClient* mqttClient = NULL;
 MiLightDiscoveryServer* discoveryServer = NULL;
 uint8_t currentRadioType = 0;
@@ -92,14 +92,16 @@ struct DiscoveryPacer {
   }
 
   void loop() {
-    if (state == IDLE || mqttClient == NULL) return;
+    if (state == IDLE || mqttClient == NULL)
+      return;
 
     if (state == SENDING_CONFIGS) {
       if (addIt != addEnd) {
         HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
         discoveryClient.addConfig(addIt->first.c_str(), addIt->second.bulbId);
         ++addIt;
-      } else {
+      }
+      else {
         state = REMOVING_OLD;
       }
     }
@@ -109,7 +111,8 @@ struct DiscoveryPacer {
         HomeAssistantDiscoveryClient discoveryClient(settings, mqttClient);
         discoveryClient.removeConfig(removeIt->second);
         ++removeIt;
-      } else {
+      }
+      else {
         settings.deletedGroupIdAliases.clear();
         state = IDLE;
         // Republish all MQTT state after discovery
@@ -125,7 +128,7 @@ struct DiscoveryPacer {
  * Set up UDP servers (both v5 and v6).  Clean up old ones if necessary.
  */
 void initMilightUdpServers() {
-  if (! WiFi.isConnected()) {
+  if (!WiFi.isConnected()) {
     return;
   }
 
@@ -134,17 +137,14 @@ void initMilightUdpServers() {
   for (size_t i = 0; i < settings.gatewayConfigs.size(); ++i) {
     const GatewayConfig& config = *settings.gatewayConfigs[i];
 
-    std::shared_ptr<MiLightUdpServer> server = MiLightUdpServer::fromVersion(
-      config.protocolVersion,
-      milightClient,
-      config.port,
-      config.deviceId
-    );
+    std::shared_ptr<MiLightUdpServer> server =
+      MiLightUdpServer::fromVersion(config.protocolVersion, milightClient, config.port, config.deviceId);
 
     if (server == NULL) {
       DebugSerial.print(F("Error creating UDP server with protocol version: "));
       DebugSerial.println(config.protocolVersion);
-    } else {
+    }
+    else {
       udpServers.push_back(std::move(server));
       udpServers.back()->begin();
     }
@@ -180,8 +180,7 @@ void onPacketSentHandler(uint8_t* packet, const MiLightRemoteConfig& config) {
     return;
   }
 
-  const MiLightRemoteConfig* remoteConfig =
-    MiLightRemoteConfig::fromType(bulbId.deviceType);
+  const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromType(bulbId.deviceType);
 
   if (remoteConfig == NULL) {
     DebugSerial.println(F("Skipping packet handler: unknown device type"));
@@ -224,7 +223,7 @@ void handleListen() {
   // Do not handle listens while there are packets enqueued to be sent
   // Doing so causes the radio module to need to be reinitialized inbetween
   // repeats, which slows things down.
-  if (! settings.listenRepeats || packetSender->isSending()) {
+  if (!settings.listenRepeats || packetSender->isSending()) {
     return;
   }
 
@@ -235,17 +234,14 @@ void handleListen() {
       uint8_t readPacket[MILIGHT_MAX_PACKET_LENGTH];
       size_t packetLen = radios->read(readPacket);
 
-      const MiLightRemoteConfig* remoteConfig = MiLightRemoteConfig::fromReceivedPacket(
-        radio->config(),
-        readPacket,
-        packetLen
-      );
+      const MiLightRemoteConfig* remoteConfig =
+        MiLightRemoteConfig::fromReceivedPacket(radio->config(), readPacket, packetLen);
 
       if (remoteConfig == NULL) {
         // This can happen under normal circumstances, so not an error condition
-#ifdef DEBUG_PRINTF
+#  ifdef DEBUG_PRINTF
         DebugSerial.println(F("WARNING: Couldn't find remote for received packet"));
-#endif
+#  endif
         return;
       }
 
@@ -312,13 +308,7 @@ void applySettings() {
   radios = new RadioSwitchboard(radioFactory, stateStore, settings);
   packetSender = new PacketSender(*radios, settings, onPacketSentHandler);
 
-  milightClient = new MiLightClient(
-    *radios,
-    *packetSender,
-    stateStore,
-    settings,
-    transitions
-  );
+  milightClient = new MiLightClient(*radios, *packetSender, stateStore, settings, transitions);
   milightClient->onUpdateBegin(onUpdateBegin);
   milightClient->onUpdateEnd(onUpdateEnd);
 
@@ -347,27 +337,27 @@ void applySettings() {
     ledStatus->continuous(settings.ledModeOperating);
   }
 
-#ifdef ESP8266
+#  ifdef ESP8266
   WiFi.hostname(settings.hostname);
-#elif defined(ESP32)
+#  elif defined(ESP32)
   WiFi.setHostname(settings.hostname.c_str());
-#endif
-#ifdef ESP8266
+#  endif
+#  ifdef ESP8266
   WiFiPhyMode_t wifiPhyMode;
-switch (settings.wifiMode) {
-  case WifiMode::B:
-    wifiPhyMode = WIFI_PHY_MODE_11B;
-    break;
-  case WifiMode::G:
-    wifiPhyMode = WIFI_PHY_MODE_11G;
-    break;
-  default:
-  case WifiMode::N:
-    wifiPhyMode = WIFI_PHY_MODE_11N;
-    break;
-}
+  switch (settings.wifiMode) {
+    case WifiMode::B:
+      wifiPhyMode = WIFI_PHY_MODE_11B;
+      break;
+    case WifiMode::G:
+      wifiPhyMode = WIFI_PHY_MODE_11G;
+      break;
+    default:
+    case WifiMode::N:
+      wifiPhyMode = WIFI_PHY_MODE_11N;
+      break;
+  }
   WiFi.setPhyMode(wifiPhyMode);
-#elif defined(ESP32)
+#  elif defined(ESP32)
   switch (settings.wifiMode) {
     case WifiMode::B:
       esp_wifi_set_protocol(WIFI_IF_STA, WIFI_PROTOCOL_11B);
@@ -381,14 +371,14 @@ switch (settings.wifiMode) {
       break;
   }
   esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT20);
-#endif
+#  endif
 }
 
 /**
  *
  */
 bool shouldRestart() {
-  if (! settings.isAutoRestartEnabled()) {
+  if (!settings.isAutoRestartEnabled()) {
     return false;
   }
 
@@ -427,12 +417,7 @@ void onGroupDeleted(const BulbId& id) {
     if (config == NULL) {
       return;
     }
-    mqttClient->sendState(
-      *config,
-      id.deviceId,
-      id.groupId,
-      ""
-    );
+    mqttClient->sendState(*config, id.deviceId, id.groupId, "");
   }
 }
 
@@ -440,28 +425,35 @@ void onTelnetInput(String input) {
   input.trim();
   if (input == "heap") {
     telnet.printf("Free heap: %u bytes\n", ESP.getFreeHeap());
-  } else if (input == "status") {
+  }
+  else if (input == "status") {
     String about = AboutHelper::generateAboutString(false);
     telnet.println(about);
-  } else if (input == "uptime") {
+  }
+  else if (input == "uptime") {
     telnet.printf("Uptime: %lu ms\n", millis());
-  } else if (input == "sync") {
+  }
+  else if (input == "sync") {
     if (bulbStateUpdater != NULL) {
       bulbStateUpdater->syncAll();
       telnet.println(F("MQTT state sync triggered"));
-    } else {
+    }
+    else {
       telnet.println(F("MQTT not configured"));
     }
-  } else if (input == "help") {
+  }
+  else if (input == "help") {
     telnet.println(F("Commands: heap, status, uptime, sync, help"));
-  } else {
+  }
+  else {
     telnet.println(F("Unknown command. Type 'help' for list."));
   }
 }
 
 bool initialized = false;
 void postConnectSetup() {
-  if (initialized) return;
+  if (initialized)
+    return;
   initialized = true;
 
   delete wifiManager;
@@ -492,17 +484,15 @@ void postConnectSetup() {
   telnet.begin(23);
   DebugSerial.setTelnet(&telnet);
 
-  transitions.addListener(
-      [](const BulbId& bulbId, GroupStateField field, uint16_t value) {
-          JsonDocument buffer;
+  transitions.addListener([](const BulbId& bulbId, GroupStateField field, uint16_t value) {
+    JsonDocument buffer;
 
-          const char* fieldName = GroupStateFieldHelpers::getFieldName(field);
-          buffer[fieldName] = value;
+    const char* fieldName = GroupStateFieldHelpers::getFieldName(field);
+    buffer[fieldName] = value;
 
-          milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
-          milightClient->update(buffer.as<JsonObject>());
-      }
-  );
+    milightClient->prepare(bulbId.deviceType, bulbId.deviceId, bulbId.groupId);
+    milightClient->update(buffer.as<JsonObject>());
+  });
 
   initMilightUdpServers();
 
@@ -514,7 +504,7 @@ void setup() {
   String ssid = "ESP" + String(getESPId());
 
   // load up our persistent settings from the file system
-  if (! ProjectFS.begin()) {
+  if (!ProjectFS.begin()) {
     DebugSerial.println(F("Failed to mount file system, formatting..."));
     ProjectFS.format();
     ProjectFS.begin();
@@ -529,7 +519,7 @@ void setup() {
   ledStatus->continuous(settings.ledModeWifiConfig);
 
   // start up the wifi manager
-  if (! MDNS.begin("milight-hub")) {
+  if (!MDNS.begin("milight-hub")) {
     DebugSerial.println(F("Error setting up MDNS responder"));
   }
 
@@ -546,18 +536,12 @@ void setup() {
   wifiManager->setConnectRetries(5);
 
   wifiStaticIP = new WiFiManagerParameter(
-    "staticIP",
-    "Static IP (Leave blank for dhcp)",
-    settings.wifiStaticIP.c_str(),
-    MAX_IP_ADDR_LEN
+    "staticIP", "Static IP (Leave blank for dhcp)", settings.wifiStaticIP.c_str(), MAX_IP_ADDR_LEN
   );
   wifiManager->addParameter(wifiStaticIP);
 
   wifiStaticIPNetmask = new WiFiManagerParameter(
-    "netmask",
-    "Netmask (required if IP given)",
-    settings.wifiStaticIPNetmask.c_str(),
-    MAX_IP_ADDR_LEN
+    "netmask", "Netmask (required if IP given)", settings.wifiStaticIPNetmask.c_str(), MAX_IP_ADDR_LEN
   );
   wifiManager->addParameter(wifiStaticIPNetmask);
 
@@ -572,7 +556,9 @@ void setup() {
   wifiMode = new WiFiManagerParameter(
     "wifiMode",
     "WiFi Mode (b/g/n)",
-    settings.wifiMode == WifiMode::B ? "b" : settings.wifiMode == WifiMode::G ? "g" : "n",
+    settings.wifiMode == WifiMode::B   ? "b"
+    : settings.wifiMode == WifiMode::G ? "g"
+                                       : "n",
     1
   );
   wifiManager->addParameter(wifiMode);
@@ -586,16 +572,16 @@ void setup() {
     _subnet.fromString(settings.wifiStaticIPNetmask);
     _gw.fromString(settings.wifiStaticIPGateway);
 
-    wifiManager->setSTAStaticIPConfig(_ip,_gw,_subnet);
+    wifiManager->setSTAStaticIPConfig(_ip, _gw, _subnet);
   }
 
   wifiManager->setConfigPortalTimeout(180);
   wifiManager->setConfigPortalTimeoutCallback([]() {
-      ledStatus->continuous(settings.ledModeWifiFailed);
+    ledStatus->continuous(settings.ledModeWifiFailed);
 
-      DebugSerial.println(F("Wifi config portal timed out.  Restarting..."));
-      delay(10000);
-      ESP.restart();
+    DebugSerial.println(F("Wifi config portal timed out.  Restarting..."));
+    delay(10000);
+    ESP.restart();
   });
 
   if (wifiManager->autoConnect(ssid.c_str(), "milightHub")) {
@@ -636,7 +622,7 @@ void loop() {
       discoveryPacer.loop();
     }
 
-    for (auto & udpServer : udpServers) {
+    for (auto& udpServer : udpServers) {
       udpServer->handleClient();
     }
 
@@ -646,9 +632,9 @@ void loop() {
 
     handleListen();
 
-#ifdef ESP8266
+#  ifdef ESP8266
     MDNS.update();
-#endif
+#  endif
 
     stateStore->limitedFlush();
     packetSender->loop();
@@ -675,7 +661,8 @@ void loop() {
       DebugSerial.print(freeHeap);
       DebugSerial.println(F(" bytes, restarting"));
       ESP.restart();
-    } else if (freeHeap < 8192) {
+    }
+    else if (freeHeap < 8192) {
       DebugSerial.print(F("WARNING: Low free heap: "));
       DebugSerial.print(freeHeap);
       DebugSerial.println(F(" bytes"));

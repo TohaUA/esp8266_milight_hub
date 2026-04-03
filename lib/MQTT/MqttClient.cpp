@@ -32,8 +32,7 @@ MqttClient::MqttClient(Settings& settings, MiLightClient*& milightClient)
     milightClient(milightClient),
     settings(settings),
     lastConnectAttempt(0),
-    connected(false)
-{
+    connected(false) {
   String strDomain = settings.mqttServer();
   this->domain = new char[strDomain.length() + 1];
   strcpy(this->domain, strDomain.c_str());
@@ -65,11 +64,9 @@ void MqttClient::begin() {
   mqttClient.setServer(this->domain, settings.mqttPort());
   // 5s tolerates WiFi congestion without blocking the main loop too long (was 2s)
   mqttClient.setSocketTimeout(5);
-  mqttClient.setCallback(
-    [this](char* topic, byte* payload, int length) {
-      this->publishCallback(topic, payload, length);
-    }
-  );
+  mqttClient.setCallback([this](char* topic, byte* payload, int length) {
+    this->publishCallback(topic, payload, length);
+  });
   reconnect();
 }
 
@@ -79,8 +76,8 @@ bool MqttClient::connect() {
   String lwtMessage = generateConnectionStatusMessage(STATUS_LWT_DISCONNECTED);
 
 #ifdef MQTT_DEBUG
-    DebugSerial.println(F("MqttClient - connecting using name"));
-    DebugSerial.println(nameBuffer);
+  DebugSerial.println(F("MqttClient - connecting using name"));
+  DebugSerial.println(nameBuffer);
 #endif
 
   if (settings.mqttUsername.length() > 0 && settings.mqttClientStatusTopic.length() > 0) {
@@ -93,21 +90,14 @@ bool MqttClient::connect() {
       true,
       lwtMessage.c_str()
     );
-  } else if (settings.mqttUsername.length() > 0) {
-    return mqttClient.connect(
-      nameBuffer,
-      settings.mqttUsername.c_str(),
-      settings.mqttPassword.c_str()
-    );
-  } else if (settings.mqttClientStatusTopic.length() > 0) {
-    return mqttClient.connect(
-      nameBuffer,
-      settings.mqttClientStatusTopic.c_str(),
-      2,
-      true,
-      lwtMessage.c_str()
-    );
-  } else {
+  }
+  else if (settings.mqttUsername.length() > 0) {
+    return mqttClient.connect(nameBuffer, settings.mqttUsername.c_str(), settings.mqttPassword.c_str());
+  }
+  else if (settings.mqttClientStatusTopic.length() > 0) {
+    return mqttClient.connect(nameBuffer, settings.mqttClientStatusTopic.c_str(), 2, true, lwtMessage.c_str());
+  }
+  else {
     return mqttClient.connect(nameBuffer);
   }
 }
@@ -124,7 +114,7 @@ void MqttClient::reconnect() {
     return;
   }
 
-  if (! mqttClient.connected()) {
+  if (!mqttClient.connected()) {
     if (connect()) {
       subscribe();
       sendBirthMessage();
@@ -132,7 +122,8 @@ void MqttClient::reconnect() {
 #ifdef MQTT_DEBUG
       DebugSerial.println(F("MqttClient - Successfully connected to MQTT server"));
 #endif
-    } else {
+    }
+    else {
       DebugSerial.print(F("ERROR: Failed to connect to MQTT server rc="));
       DebugSerial.println(mqttClient.state());
     }
@@ -150,16 +141,21 @@ void MqttClient::handleClient() {
     if (this->onConnectFn) {
       this->onConnectFn();
     }
-  } else if (!mqttClient.connected()) {
+  }
+  else if (!mqttClient.connected()) {
     this->connected = false;
   }
 }
 
-void MqttClient::sendUpdate(const MiLightRemoteConfig& remoteConfig, uint16_t deviceId, uint16_t groupId, const char* update) {
+void MqttClient::sendUpdate(
+  const MiLightRemoteConfig& remoteConfig, uint16_t deviceId, uint16_t groupId, const char* update
+) {
   publish(settings.mqttUpdateTopicPattern, remoteConfig, deviceId, groupId, update, false);
 }
 
-void MqttClient::sendState(const MiLightRemoteConfig& remoteConfig, uint16_t deviceId, uint16_t groupId, const char* update) {
+void MqttClient::sendState(
+  const MiLightRemoteConfig& remoteConfig, uint16_t deviceId, uint16_t groupId, const char* update
+) {
   publish(settings.mqttStateTopicPattern, remoteConfig, deviceId, groupId, update, true);
 }
 
@@ -188,11 +184,12 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
   size_t len = strlen(message);
   size_t topicLen = strlen(topic);
 
-  if ((topicLen + len + 10) < MQTT_MAX_PACKET_SIZE ) {
+  if ((topicLen + len + 10) < MQTT_MAX_PACKET_SIZE) {
     if (!mqttClient.publish(topic, message, retain)) {
       DebugSerial.println(F("WARN: MQTT publish failed"));
     }
-  } else {
+  }
+  else {
     const uint8_t* messageBuffer = reinterpret_cast<const uint8_t*>(message);
 
 #ifdef MQTT_DEBUG
@@ -206,7 +203,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
 
     for (size_t i = 0; i < len; i += MQTT_PACKET_CHUNK_SIZE) {
       size_t toWrite = std::min(static_cast<size_t>(MQTT_PACKET_CHUNK_SIZE), len - i);
-      size_t written = mqttClient.write(messageBuffer+i, toWrite);
+      size_t written = mqttClient.write(messageBuffer + i, toWrite);
       if (written != toWrite) {
         DebugSerial.printf("WARN: MQTT write failed mid-publish (wrote %d of %d)\n", written, toWrite);
         break;
@@ -222,7 +219,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
 
 void MqttClient::publish(
   const String& _topic,
-  const MiLightRemoteConfig &remoteConfig,
+  const MiLightRemoteConfig& remoteConfig,
   uint16_t deviceId,
   uint16_t groupId,
   const char* message,
@@ -266,7 +263,8 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   printf("MqttClient - Got message on topic: %s\n%s\n", topic, cstrPayload);
 #endif
 
-  auto patternIterator = std::make_shared<TokenIterator>(settings.mqttTopicPattern.c_str(), settings.mqttTopicPattern.length(), '/');
+  auto patternIterator =
+    std::make_shared<TokenIterator>(settings.mqttTopicPattern.c_str(), settings.mqttTopicPattern.length(), '/');
   auto topicIterator = std::make_shared<TokenIterator>(topic, strlen(topic), '/');
   UrlTokenBindings tokenBindings(patternIterator, topicIterator);
 
@@ -277,19 +275,23 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
     if (itr == settings.groupIdAliases.end()) {
       DebugSerial.printf("MqttClient - WARNING: could not find device alias: `%s'. Ignoring packet.\n", alias.c_str());
       return;
-    } else {
+    }
+    else {
       BulbId bulbId = itr->second.bulbId;
 
       deviceId = bulbId.deviceId;
       config = MiLightRemoteConfig::fromType(bulbId.deviceType);
       groupId = bulbId.groupId;
     }
-  } else {
+  }
+  else {
     if (tokenBindings.hasBinding(GroupStateFieldNames::DEVICE_ID)) {
       deviceId = parseInt<uint16_t>(tokenBindings.get(GroupStateFieldNames::DEVICE_ID));
-    } else if (tokenBindings.hasBinding("hex_device_id")) {
+    }
+    else if (tokenBindings.hasBinding("hex_device_id")) {
       deviceId = parseInt<uint16_t>(tokenBindings.get("hex_device_id"));
-    } else if (tokenBindings.hasBinding("dec_device_id")) {
+    }
+    else if (tokenBindings.hasBinding("dec_device_id")) {
       deviceId = parseInt<uint16_t>(tokenBindings.get("dec_device_id"));
     }
 
@@ -299,7 +301,8 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
 
     if (tokenBindings.hasBinding(GroupStateFieldNames::DEVICE_TYPE)) {
       config = MiLightRemoteConfig::fromType(tokenBindings.get(GroupStateFieldNames::DEVICE_TYPE));
-    } else {
+    }
+    else {
       DebugSerial.println(F("MqttClient - WARNING: could not find device_type token.  Defaulting to FUT092.\n"));
     }
   }
@@ -364,10 +367,12 @@ String MqttClient::generateConnectionStatusMessage(const char* connectionStatus)
     // Don't expand disconnect type for simple status
     if (0 == strcmp(connectionStatus, STATUS_CONNECTED)) {
       return connectionStatus;
-    } else {
+    }
+    else {
       return "disconnected";
     }
-  } else {
+  }
+  else {
     JsonDocument json;
     json[GroupStateFieldNames::STATUS] = connectionStatus;
 

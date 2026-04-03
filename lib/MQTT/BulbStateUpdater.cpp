@@ -7,8 +7,7 @@ BulbStateUpdater::BulbStateUpdater(Settings& settings, MqttClient& mqttClient, G
     stateStore(stateStore),
     lastFlush(0),
     lastQueue(0),
-    enabled(true)
-{ }
+    enabled(true) {}
 
 void BulbStateUpdater::enable() {
   this->enabled = true;
@@ -51,7 +50,9 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
   state.applyState(message, bulbId, settings.groupStateFields);
 
   if (json.overflowed()) {
-    DebugSerial.println(F("ERROR: State is too large for MQTT buffer, continuing anyway. Consider increasing MILIGHT_MQTT_JSON_BUFFER_SIZE."));
+    DebugSerial.println(F(
+      "ERROR: State is too large for MQTT buffer, continuing anyway. Consider increasing MILIGHT_MQTT_JSON_BUFFER_SIZE."
+    ));
   }
 
   char buffer[MILIGHT_MQTT_JSON_BUFFER_SIZE];
@@ -63,12 +64,7 @@ inline void BulbStateUpdater::flushGroup(BulbId bulbId, GroupState& state) {
     return;
   }
 
-  mqttClient.sendState(
-    *config,
-    bulbId.deviceId,
-    bulbId.groupId,
-    buffer
-  );
+  mqttClient.sendState(*config, bulbId.deviceId, bulbId.groupId, buffer);
 
   lastFlush = millis();
 }
@@ -88,5 +84,6 @@ void BulbStateUpdater::syncAll() {
 
 inline bool BulbStateUpdater::canFlush() const {
   unsigned long now = millis();
-  return enabled && ((now - lastFlush) >= settings.mqttStateRateLimit) && ((now - lastQueue) >= settings.mqttDebounceDelay);
+  return enabled && ((now - lastFlush) >= settings.mqttStateRateLimit) &&
+         ((now - lastQueue) >= settings.mqttDebounceDelay);
 }

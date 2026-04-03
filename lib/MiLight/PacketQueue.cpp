@@ -2,8 +2,7 @@
 #include <DebugSerial.h>
 
 PacketQueue::PacketQueue()
-  : droppedPackets(0)
-{ }
+  : droppedPackets(0) {}
 
 void PacketQueue::push(const uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride) {
   if (buffer.isFull()) {
@@ -19,7 +18,8 @@ void PacketQueue::push(const uint8_t* packet, const MiLightRemoteConfig* remoteC
 }
 
 bool PacketQueue::peek(QueuedPacket& out) const {
-  if (buffer.isEmpty()) return false;
+  if (buffer.isEmpty())
+    return false;
   out = buffer.first();
   return true;
 }
