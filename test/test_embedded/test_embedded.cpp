@@ -12,6 +12,7 @@
 #include <FUT091PacketFormatter.h>
 #include <Units.h>
 
+#include <Settings.h>
 #include "unity.h"
 
 #ifdef ESP32
@@ -344,6 +345,104 @@ void test_group_0() {
   TEST_ASSERT_TRUE_MESSAGE(storedState.isEqualIgnoreDirty(rgbState), "Should persist group 0 for device type with no groups");
 }
 
+//================================================================================
+// Settings Validation
+//================================================================================
+
+String patchWith(const char* json) {
+  Settings s;
+  JsonDocument doc;
+  deserializeJson(doc, json);
+  return s.patch(doc.as<JsonObject>());
+}
+
+void test_valid_settings_accepted() {
+  String err = patchWith("{\"packet_repeats\":50,\"hostname\":\"my-hub\",\"radio_interface_type\":\"nRF24\"}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Valid settings should be accepted");
+}
+
+void test_reject_invalid_enum() {
+  String err = patchWith("{\"radio_interface_type\":\"INVALID\"}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject invalid radio_interface_type");
+  TEST_ASSERT_TRUE_MESSAGE(err.indexOf("radio_interface_type") >= 0, "Error should name the field");
+}
+
+void test_reject_out_of_range_int() {
+  String err = patchWith("{\"packet_repeats\":0}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject packet_repeats=0");
+
+  err = patchWith("{\"packet_repeats\":1001}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject packet_repeats=1001");
+
+  err = patchWith("{\"packet_repeats\":50}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept packet_repeats=50");
+}
+
+void test_reject_long_string() {
+  char json[200];
+  char longHost[65];
+  memset(longHost, 'a', 64);
+  longHost[64] = 0;
+  snprintf(json, sizeof(json), "{\"hostname\":\"%s\"}", longHost);
+
+  String err = patchWith(json);
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject hostname > 63 chars");
+}
+
+void test_reject_empty_hostname() {
+  String err = patchWith("{\"hostname\":\"\"}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject empty hostname");
+}
+
+void test_reject_invalid_led_mode() {
+  String err = patchWith("{\"led_mode_operating\":\"Bogus\"}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject invalid LED mode");
+
+  err = patchWith("{\"led_mode_operating\":\"Slow blip\"}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept valid LED mode");
+}
+
+void test_reject_invalid_rf24_channel_array() {
+  String err = patchWith("{\"rf24_channels\":[]}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject empty rf24_channels");
+
+  err = patchWith("{\"rf24_channels\":[\"LOW\",\"BOGUS\"]}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject invalid channel name");
+
+  err = patchWith("{\"rf24_channels\":[\"LOW\",\"MID\",\"HIGH\"]}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept valid channels");
+}
+
+void test_reject_invalid_gateway_config() {
+  String err = patchWith("{\"gateway_configs\":[[1234,0,6]]}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject port=0");
+
+  err = patchWith("{\"gateway_configs\":[[1234,5555,7]]}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject protocol=7");
+
+  err = patchWith("{\"gateway_configs\":[[1234,5555,6]]}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept valid gateway config");
+}
+
+void test_reject_invalid_pin() {
+  String err = patchWith("{\"ce_pin\":40}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject ce_pin=40");
+
+  err = patchWith("{\"led_pin\":-40}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject led_pin=-40");
+}
+
+void test_state_flush_interval_validation() {
+  String err = patchWith("{\"state_flush_interval\":50}");
+  TEST_ASSERT_TRUE_MESSAGE(err.length() > 0, "Should reject state_flush_interval=50 (below 100, non-zero)");
+
+  err = patchWith("{\"state_flush_interval\":0}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept 0 (disabled)");
+
+  err = patchWith("{\"state_flush_interval\":10000}");
+  TEST_ASSERT_EQUAL_STRING_MESSAGE("", err.c_str(), "Should accept 10000");
+}
+
 // setup connects serial, runs test cases (upcoming)
 void setup() {
   delay(2000);
@@ -361,6 +460,17 @@ void setup() {
 
   RUN_TEST(test_fut091_packet_formatter);
   RUN_TEST(test_fut092_packet_formatter);
+
+  RUN_TEST(test_valid_settings_accepted);
+  RUN_TEST(test_reject_invalid_enum);
+  RUN_TEST(test_reject_out_of_range_int);
+  RUN_TEST(test_reject_long_string);
+  RUN_TEST(test_reject_empty_hostname);
+  RUN_TEST(test_reject_invalid_led_mode);
+  RUN_TEST(test_reject_invalid_rf24_channel_array);
+  RUN_TEST(test_reject_invalid_gateway_config);
+  RUN_TEST(test_reject_invalid_pin);
+  RUN_TEST(test_state_flush_interval_validation);
 
   UNITY_END();
 }
