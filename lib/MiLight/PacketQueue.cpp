@@ -1,4 +1,5 @@
 #include <PacketQueue.h>
+#include <DebugSerial.h>
 
 PacketQueue::PacketQueue()
   : droppedPackets(0)
@@ -7,6 +8,7 @@ PacketQueue::PacketQueue()
 void PacketQueue::push(const uint8_t* packet, const MiLightRemoteConfig* remoteConfig, const size_t repeatsOverride) {
   if (buffer.isFull()) {
     ++droppedPackets;
+    DebugSerial.printf("WARN: Radio TX queue full, dropping oldest packet (total dropped: %d)\n", droppedPackets);
     buffer.shift(); // drop oldest
   }
   QueuedPacket qp;
