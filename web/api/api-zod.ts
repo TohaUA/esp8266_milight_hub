@@ -219,6 +219,12 @@ const About = z
     firmware: z.string().describe("Always set to 'milight-hub'"),
     version: z.string().describe("Semver version string"),
     ip_address: z.string(),
+    wifi_ssid: z.string().describe("Currently connected WiFi SSID"),
+    wifi_rssi: z.number().int().describe("WiFi signal strength in dBm"),
+    wifi_gateway: z.string().describe("WiFi gateway IP address"),
+    wifi_subnet: z.string().describe("WiFi subnet mask"),
+    wifi_dns: z.string().describe("WiFi DNS server IP address"),
+    wifi_mac: z.string().describe("WiFi MAC address"),
     reset_reason: z.string().describe("Reason the system was last rebooted"),
     variant: z.string().describe("Firmware variant (e.g., d1_mini, nodemcuv2)"),
     free_heap: z
@@ -492,6 +498,30 @@ const Settings = z
     wifi_static_ip_netmask: z
       .string()
       .describe("If specified along with static IP, the netmask to use"),
+    wifi_ssid: z
+      .string()
+      .max(32)
+      .describe("Primary WiFi SSID"),
+    wifi_password: z
+      .string()
+      .max(63)
+      .describe("Primary WiFi password"),
+    wifi_ssid_secondary: z
+      .string()
+      .max(32)
+      .describe("Fallback WiFi SSID (used when primary fails)"),
+    wifi_password_secondary: z
+      .string()
+      .max(63)
+      .describe("Fallback WiFi password"),
+    wifi_dns: z
+      .string()
+      .max(15)
+      .describe("DNS server IP address. Leave empty to use gateway as DNS."),
+    wifi_portal_on_fail: z
+      .boolean()
+      .describe("Enter WiFi setup portal on boot if both WiFi networks fail to connect. When disabled, retries forever.")
+      .default(true),
     packet_repeats_per_loop: z
       .number()
       .int()
