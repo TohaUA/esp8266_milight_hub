@@ -15,9 +15,10 @@ import { schemas } from "@/api";
 import { z } from "zod";
 import { useSettings } from "@/lib/settings";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
+import { useToast } from "@/hooks/use-toast";
 
 type Settings = z.infer<typeof schemas.Settings>;
 type SettingsKey = keyof typeof schemas.Settings.shape;
@@ -142,10 +143,29 @@ const TopicFieldsSelector: React.FC<{}> = ({}) => {
 
 export const MQTTConnectionSection: React.FC<{}> = () => {
   const { about, reloadAbout, isLoadingAbout } = useSettings();
+  const { toast } = useToast();
   const [mqttServer, mqttUsername, mqttPassword] = useWatch({
     name: ["mqtt_server", "mqtt_username", "mqtt_password"],
   });
   const [hasChanged, setHasChanged] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncMqtt = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch("/mqtt/sync", { method: "POST" });
+      const data = await response.json();
+      if (data.success) {
+        toast({ title: "MQTT state synced" });
+      } else {
+        toast({ title: "Sync failed", description: data.error, variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Sync failed", variant: "destructive" });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -197,6 +217,18 @@ export const MQTTConnectionSection: React.FC<{}> = () => {
               </span>
               <code>{mqttStatus}</code>
             </div>
+          )}
+          {isConnected && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-4"
+              onClick={handleSyncMqtt}
+              disabled={isSyncing}
+            >
+              <RefreshCw size={14} className={`mr-1 ${isSyncing ? "animate-spin" : ""}`} />
+              Sync State
+            </Button>
           )}
         </div>
       )}
