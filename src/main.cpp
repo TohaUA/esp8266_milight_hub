@@ -42,15 +42,39 @@
 #  include "ProjectFS.h"
 
 WiFiManager* wifiManager;
-// because of callbacks, these need to be in the higher scope :(
-WiFiManagerParameter* wifiStaticIP = NULL;
-WiFiManagerParameter* wifiStaticIPNetmask = NULL;
-WiFiManagerParameter* wifiStaticIPGateway = NULL;
-WiFiManagerParameter* wifiMode = NULL;
 
 static LEDStatus* ledStatus;
 
 Settings settings;
+
+// Track WiFi settings to detect changes requiring restart
+String prevWifiSsid, prevWifiPassword, prevWifiSsidSecondary, prevWifiPasswordSecondary;
+String prevWifiStaticIP, prevWifiStaticIPGateway, prevWifiStaticIPNetmask, prevWifiDns;
+bool prevWifiPortalOnFail;
+
+void snapshotWifiSettings() {
+  prevWifiSsid = settings.wifiSsid;
+  prevWifiPassword = settings.wifiPassword;
+  prevWifiSsidSecondary = settings.wifiSsidSecondary;
+  prevWifiPasswordSecondary = settings.wifiPasswordSecondary;
+  prevWifiStaticIP = settings.wifiStaticIP;
+  prevWifiStaticIPGateway = settings.wifiStaticIPGateway;
+  prevWifiStaticIPNetmask = settings.wifiStaticIPNetmask;
+  prevWifiDns = settings.wifiDns;
+  prevWifiPortalOnFail = settings.wifiPortalOnFail;
+}
+
+bool wifiSettingsChanged() {
+  return prevWifiSsid != settings.wifiSsid
+      || prevWifiPassword != settings.wifiPassword
+      || prevWifiSsidSecondary != settings.wifiSsidSecondary
+      || prevWifiPasswordSecondary != settings.wifiPasswordSecondary
+      || prevWifiStaticIP != settings.wifiStaticIP
+      || prevWifiStaticIPGateway != settings.wifiStaticIPGateway
+      || prevWifiStaticIPNetmask != settings.wifiStaticIPNetmask
+      || prevWifiDns != settings.wifiDns
+      || prevWifiPortalOnFail != settings.wifiPortalOnFail;
+}
 
 MiLightClient* milightClient = NULL;
 RadioSwitchboard* radios = nullptr;
@@ -387,18 +411,6 @@ bool shouldRestart() {
   return millis() >= periodMs;
 }
 
-void wifiExtraSettingsChange() {
-  settings.wifiStaticIP = wifiStaticIP->getValue();
-  settings.wifiStaticIPNetmask = wifiStaticIPNetmask->getValue();
-  settings.wifiStaticIPGateway = wifiStaticIPGateway->getValue();
-  settings.wifiMode = Settings::wifiModeFromString(wifiMode->getValue());
-  settings.save();
-
-  // Restart the device
-  delay(1000);
-  ESP.restart();
-}
-
 void aboutHandler(JsonDocument& json) {
   JsonObject mqtt = json[FPSTR("mqtt")].to<JsonObject>();
   mqtt[FPSTR("configured")] = (mqttClient != nullptr);
@@ -470,7 +482,16 @@ void postConnectSetup() {
   SSDP.begin();
 
   httpServer = new MiLightHttpServer(settings, milightClient, stateStore, packetSender, radios, transitions);
-  httpServer->onSettingsSaved(applySettings);
+  httpServer->onSettingsSaved([]() {
+    bool needsRestart = wifiSettingsChanged();
+    applySettings();
+    snapshotWifiSettings();
+    if (needsRestart) {
+      DebugSerial.println(F("WiFi settings changed. Restarting..."));
+      delay(1000);
+      ESP.restart();
+    }
+  });
   httpServer->onGroupDeleted(onGroupDeleted);
   httpServer->onAbout(aboutHandler);
   httpServer->on("/description.xml", HTTP_GET, []() { SSDP.schema(httpServer->client()); });
@@ -499,9 +520,71 @@ void postConnectSetup() {
   DebugSerial.printf("Setup complete (version %s)\n", QUOTE(MILIGHT_HUB_VERSION));
 }
 
+/**
+ * Apply static IP configuration if wifi_static_ip is set.
+ * Call before each WiFi.begin() attempt.
+ */
+void applyStaticIPConfig() {
+  if (settings.wifiStaticIP.length() > 0) {
+    IPAddress ip, gw, subnet, dns;
+    ip.fromString(settings.wifiStaticIP);
+    subnet.fromString(settings.wifiStaticIPNetmask);
+    gw.fromString(settings.wifiStaticIPGateway);
+
+    if (settings.wifiDns.length() > 0) {
+      dns.fromString(settings.wifiDns);
+      WiFi.config(ip, gw, subnet, dns);
+    } else {
+      WiFi.config(ip, gw, subnet);
+    }
+  }
+}
+
+/**
+ * Try connecting to a WiFi network. Returns true if connected.
+ * Blocks for up to timeoutMs milliseconds.
+ */
+bool tryConnect(const String& ssid, const String& password, unsigned long timeoutMs = 20000) {
+  if (ssid.length() == 0) return false;
+
+  DebugSerial.printf("Trying WiFi: %s\n", ssid.c_str());
+  applyStaticIPConfig();
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < timeoutMs) {
+    delay(100);
+    ledStatus->handle();
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    DebugSerial.printf("Connected to %s (IP: %s)\n", ssid.c_str(), WiFi.localIP().toString().c_str());
+    return true;
+  }
+
+  DebugSerial.printf("Failed to connect to %s\n", ssid.c_str());
+  WiFi.disconnect();
+  return false;
+}
+
+/**
+ * On first boot after upgrade, migrate WiFiManager-stored credentials
+ * into settings fields so the device continues to work.
+ */
+void migrateWiFiManagerCredentials() {
+  if (settings.wifiSsid.length() > 0) return;  // already configured
+
+  String storedSSID = WiFi.SSID();
+  if (storedSSID.length() > 0) {
+    DebugSerial.printf("Migrating WiFiManager credentials for SSID: %s\n", storedSSID.c_str());
+    settings.wifiSsid = storedSSID;
+    settings.wifiPassword = WiFi.psk();
+    settings.save();
+  }
+}
+
 void setup() {
   DebugSerial.begin(9600);
-  String ssid = "ESP" + String(getESPId());
 
   // load up our persistent settings from the file system
   if (!ProjectFS.begin()) {
@@ -523,78 +606,66 @@ void setup() {
     DebugSerial.println(F("Error setting up MDNS responder"));
   }
 
-  // Allows us to have static IP config in the captive portal. Yucky pointers to pointers, just to have the settings carry through
-  wifiManager = new WiFiManager();
+  // Migrate credentials from WiFiManager flash storage (one-time on upgrade)
+  migrateWiFiManagerCredentials();
 
-  // Setting breakAfterConfig to true causes wifiExtraSettingsChange to be called whenever config params are changed
-  // (even when connection fails or user is just changing settings and not network)
-  wifiManager->setBreakAfterConfig(true);
-  wifiManager->setSaveConfigCallback(wifiExtraSettingsChange);
+  // Attempt settings-driven WiFi connection
+  bool connected = false;
 
-  wifiManager->setConfigPortalBlocking(false);
-  wifiManager->setConnectTimeout(20);
-  wifiManager->setConnectRetries(5);
-
-  wifiStaticIP = new WiFiManagerParameter(
-    "staticIP", "Static IP (Leave blank for dhcp)", settings.wifiStaticIP.c_str(), MAX_IP_ADDR_LEN
-  );
-  wifiManager->addParameter(wifiStaticIP);
-
-  wifiStaticIPNetmask = new WiFiManagerParameter(
-    "netmask", "Netmask (required if IP given)", settings.wifiStaticIPNetmask.c_str(), MAX_IP_ADDR_LEN
-  );
-  wifiManager->addParameter(wifiStaticIPNetmask);
-
-  wifiStaticIPGateway = new WiFiManagerParameter(
-    "gateway",
-    "Default Gateway (optional, only used if static IP)",
-    settings.wifiStaticIPGateway.c_str(),
-    MAX_IP_ADDR_LEN
-  );
-  wifiManager->addParameter(wifiStaticIPGateway);
-
-  wifiMode = new WiFiManagerParameter(
-    "wifiMode",
-    "WiFi Mode (b/g/n)",
-    settings.wifiMode == WifiMode::B   ? "b"
-    : settings.wifiMode == WifiMode::G ? "g"
-                                       : "n",
-    1
-  );
-  wifiManager->addParameter(wifiMode);
-
-  // We have a saved static IP, let's try and use it.
-  if (settings.wifiStaticIP.length() > 0) {
-    DebugSerial.printf("We have a static IP: %s\n", settings.wifiStaticIP.c_str());
-
-    IPAddress _ip, _subnet, _gw;
-    _ip.fromString(settings.wifiStaticIP);
-    _subnet.fromString(settings.wifiStaticIPNetmask);
-    _gw.fromString(settings.wifiStaticIPGateway);
-
-    wifiManager->setSTAStaticIPConfig(_ip, _gw, _subnet);
+  if (settings.wifiSsid.length() > 0 || settings.wifiSsidSecondary.length() > 0) {
+    // Dual-WiFi ordered failover: primary -> secondary -> retry or portal
+    while (!connected) {
+      connected = tryConnect(settings.wifiSsid, settings.wifiPassword);
+      if (!connected) {
+        connected = tryConnect(settings.wifiSsidSecondary, settings.wifiPasswordSecondary);
+      }
+      if (!connected) {
+        if (settings.wifiPortalOnFail) {
+          break;  // fall through to portal
+        }
+        DebugSerial.println(F("Both WiFi networks failed. Retrying..."));
+        delay(5000);
+      }
+    }
   }
 
-  wifiManager->setConfigPortalTimeout(180);
-  wifiManager->setConfigPortalTimeoutCallback([]() {
-    ledStatus->continuous(settings.ledModeWifiFailed);
+  if (!connected) {
+    // No SSIDs configured or both failed with portal enabled — use WiFiManager captive portal
+    wifiManager = new WiFiManager();
+    wifiManager->setConfigPortalBlocking(false);
+    wifiManager->setConnectTimeout(20);
+    wifiManager->setConnectRetries(5);
 
-    DebugSerial.println(F("Wifi config portal timed out.  Restarting..."));
-    delay(10000);
-    ESP.restart();
-  });
+    // Static IP for portal path
+    if (settings.wifiStaticIP.length() > 0) {
+      IPAddress _ip, _subnet, _gw;
+      _ip.fromString(settings.wifiStaticIP);
+      _subnet.fromString(settings.wifiStaticIPNetmask);
+      _gw.fromString(settings.wifiStaticIPGateway);
+      wifiManager->setSTAStaticIPConfig(_ip, _gw, _subnet);
+    }
 
-  if (wifiManager->autoConnect(ssid.c_str(), "milightHub")) {
-    // set LED mode for successful operation
+    wifiManager->setConfigPortalTimeout(180);
+    wifiManager->setConfigPortalTimeoutCallback([]() {
+      ledStatus->continuous(settings.ledModeWifiFailed);
+      DebugSerial.println(F("Wifi config portal timed out.  Restarting..."));
+      delay(10000);
+      ESP.restart();
+    });
+
+    String ssid = "ESP" + String(getESPId());
+    connected = wifiManager->autoConnect(ssid.c_str(), "milightHub");
+  }
+
+  if (connected) {
     ledStatus->continuous(settings.ledModeOperating);
-    DebugSerial.println(F("Wifi connected succesfully\n"));
-
-    // if the config portal was started, make sure to turn off the config AP
+    DebugSerial.println(F("Wifi connected successfully"));
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
-
     postConnectSetup();
   }
+
+  snapshotWifiSettings();
 }
 
 size_t i = 0;
@@ -645,10 +716,34 @@ void loop() {
   }
   else if (initialized && WiFi.getMode() == WIFI_STA && !WiFi.isConnected()) {
     static unsigned long lastReconnectAttempt = 0;
-    if (millis() - lastReconnectAttempt > 30000) {
-      DebugSerial.println(F("WiFi disconnected. Attempting reconnection..."));
-      WiFi.reconnect();
+    static uint8_t retryCount = 0;
+    static bool onSecondary = false;
+
+    if (millis() - lastReconnectAttempt > 5000) {
       lastReconnectAttempt = millis();
+
+      if (retryCount < 3) {
+        // Retry current SSID
+        DebugSerial.println(F("WiFi disconnected. Retrying current SSID..."));
+        WiFi.reconnect();
+        retryCount++;
+      } else {
+        // Switch to the other SSID
+        retryCount = 0;
+        onSecondary = !onSecondary;
+        const String& ssid = onSecondary ? settings.wifiSsidSecondary : settings.wifiSsid;
+        const String& pass = onSecondary ? settings.wifiPasswordSecondary : settings.wifiPassword;
+
+        if (ssid.length() > 0) {
+          DebugSerial.printf("Failing over to %s\n", ssid.c_str());
+          applyStaticIPConfig();
+          WiFi.begin(ssid.c_str(), pass.c_str());
+        } else {
+          // Other SSID not configured, flip back
+          onSecondary = !onSecondary;
+          WiFi.reconnect();
+        }
+      }
     }
   }
 
