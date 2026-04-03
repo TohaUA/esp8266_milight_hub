@@ -1,0 +1,78 @@
+# Matches the existing code style in this project.
+# Run: clang-format -i <file>
+# Or:  find lib src -name '*.cpp' -o -name '*.h' | xargs clang-format -i
+
+Language: Cpp
+Standard: c++17
+
+# --- Indentation ---
+IndentWidth: 2
+ContinuationIndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AccessModifierOffset: -2           # public:/private: at class indent level
+IndentCaseLabels: true
+NamespaceIndentation: None
+IndentPPDirectives: AfterHash      # #ifdef / #endif indented after #
+LambdaBodyIndentation: Signature   # lambda body indented relative to signature
+
+# --- Braces ---
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: false             # void foo() { on same line
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterStruct: false
+  AfterNamespace: false
+  AfterUnion: false
+  BeforeCatch: true                # } catch on same line in codebase, but keep flexible
+  BeforeElse: true                 # } else { — codebase varies, use attached
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+
+# --- Line length ---
+ColumnLimit: 120
+
+# --- Includes ---
+SortIncludes: Never                # preserve existing include order
+
+# --- Pointer/reference alignment ---
+PointerAlignment: Left             # Type* name, Type& name
+ReferenceAlignment: Left
+
+# --- Constructor initializers ---
+# Codebase style: colon on same line or next, comma-at-end, 4-space body indent
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 2
+PackConstructorInitializers: Never
+
+# --- Function arguments ---
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+BinPackArguments: false            # one arg per line when wrapping
+BinPackParameters: false
+AlignAfterOpenBracket: BlockIndent # wrapped args indented 2 from parent, not aligned to (
+
+# --- Spaces ---
+SpaceBeforeParens: ControlStatements  # if (...) but func(...)
+SpaceInEmptyBlock: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+
+# --- Other ---
+AlignConsecutiveMacros: Consecutive   # align #define values
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: true
+MaxEmptyLinesToKeep: 2
+ReflowComments: false              # don't rewrap existing comments
+SeparateDefinitionBlocks: Leave    # don't add/remove blank lines between functions
+InsertBraces: false                # don't add braces to single-line if/for
+RemoveBracesLLVM: false
