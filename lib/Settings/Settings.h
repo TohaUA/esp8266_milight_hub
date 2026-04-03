@@ -44,6 +44,7 @@
 #endif
 
 #ifndef MILIGHT_MAX_STALE_MQTT_GROUPS
+// 50 covers burst scenarios where many bulbs change between rate-limited flushes
 #define MILIGHT_MAX_STALE_MQTT_GROUPS 50
 #endif
 

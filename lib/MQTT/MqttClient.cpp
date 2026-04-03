@@ -63,7 +63,8 @@ void MqttClient::begin() {
 #endif
 
   mqttClient.setServer(this->domain, settings.mqttPort());
-  mqttClient.setSocketTimeout(2);
+  // 5s tolerates WiFi congestion without blocking the main loop too long (was 2s)
+  mqttClient.setSocketTimeout(5);
   mqttClient.setCallback(
     [this](char* topic, byte* payload, int length) {
       this->publishCallback(topic, payload, length);
@@ -176,6 +177,7 @@ void MqttClient::subscribe() {
   printf("MqttClient - subscribing to topic: %s\n", topic.c_str());
 #endif
 
+  // QoS 1: broker redelivers unacknowledged messages, preventing silent loss on TCP hiccups
   bool success = mqttClient.subscribe(topic.c_str(), 1);
   if (!success) {
     DebugSerial.println(F("ERROR: MQTT subscribe failed"));
@@ -242,9 +244,15 @@ void MqttClient::publish(
 }
 
 void MqttClient::publishCallback(char* topic, byte* payload, int length) {
+  if (milightClient == NULL) {
+    DebugSerial.println(F("WARN: MQTT message received but milightClient not ready, ignoring"));
+    return;
+  }
+
   uint16_t deviceId = 0;
   uint8_t groupId = 0;
   const MiLightRemoteConfig* config = &FUT092Config;
+  // 768 (MQTT_MAX_PACKET_SIZE) minus ~68 bytes for topic + MQTT protocol overhead
   const int MAX_MQTT_PAYLOAD = 700;
   if (length > MAX_MQTT_PAYLOAD) {
     DebugSerial.printf("MqttClient - payload too large (%d bytes), ignoring\n", length);
@@ -315,6 +323,9 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
 
   milightClient->prepare(config, deviceId, groupId);
   milightClient->update(obj);
+
+  // Let WiFi stack process TCP buffers between commands to reduce drops during bursts
+  yield();
 }
 
 String MqttClient::bindTopicString(const String& topicPattern, const BulbId& bulbId) {

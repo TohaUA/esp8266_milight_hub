@@ -325,8 +325,12 @@ void applySettings() {
   if (settings.mqttServer().length() > 0) {
     mqttClient = new MqttClient(settings, milightClient);
     mqttClient->begin();
-    mqttClient->onConnect([]() {
+    mqttClient->onConnect([&]() {
       discoveryPacer.begin();
+      // Re-publish all cached bulb state so MQTT reflects reality after disconnect
+      if (bulbStateUpdater) {
+        bulbStateUpdater->syncAll();
+      }
     });
 
     bulbStateUpdater = new BulbStateUpdater(settings, *mqttClient, *stateStore);
