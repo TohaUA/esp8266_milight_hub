@@ -26,6 +26,9 @@ void BulbStateUpdater::enqueueUpdate(BulbId bulbId, GroupState& groupState) {
       return;
     }
   }
+  if (staleGroups.isFull()) {
+    DebugSerial.println(F("WARN: MQTT state update queue full, oldest entry dropped"));
+  }
   staleGroups.push(bulbId);
   lastQueue = millis();
 }
