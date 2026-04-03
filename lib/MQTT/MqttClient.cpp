@@ -243,7 +243,7 @@ void MqttClient::publishCallback(char* topic, byte* payload, int length) {
   uint16_t deviceId = 0;
   uint8_t groupId = 0;
   const MiLightRemoteConfig* config = &FUT092Config;
-  const int MAX_MQTT_PAYLOAD = 512;
+  const int MAX_MQTT_PAYLOAD = 700;
   if (length > MAX_MQTT_PAYLOAD) {
     DebugSerial.printf("MqttClient - payload too large (%d bytes), ignoring\n", length);
     return;
