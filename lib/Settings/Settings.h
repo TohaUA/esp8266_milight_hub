@@ -116,6 +116,12 @@ namespace SettingsKeys {
   static const char WIFI_STATIC_IP[] PROGMEM = "wifi_static_ip";
   static const char WIFI_STATIC_IP_GATEWAY[] PROGMEM = "wifi_static_ip_gateway";
   static const char WIFI_STATIC_IP_NETMASK[] PROGMEM = "wifi_static_ip_netmask";
+  static const char WIFI_SSID[] PROGMEM = "wifi_ssid";
+  static const char WIFI_PASSWORD[] PROGMEM = "wifi_password";
+  static const char WIFI_SSID_SECONDARY[] PROGMEM = "wifi_ssid_secondary";
+  static const char WIFI_PASSWORD_SECONDARY[] PROGMEM = "wifi_password_secondary";
+  static const char WIFI_DNS[] PROGMEM = "wifi_dns";
+  static const char WIFI_PORTAL_ON_FAIL[] PROGMEM = "wifi_portal_on_fail";
   static const char PACKET_REPEATS_PER_LOOP[] PROGMEM = "packet_repeats_per_loop";
   static const char HOME_ASSISTANT_DISCOVERY_PREFIX[] PROGMEM = "home_assistant_discovery_prefix";
   static const char DEFAULT_TRANSITION_PERIOD[] PROGMEM = "default_transition_period";
@@ -175,6 +181,12 @@ public:
     packetRepeatsPerLoop(10),
     homeAssistantDiscoveryPrefix("homeassistant/"),
     wifiMode(WifiMode::G),
+    wifiSsid(""),
+    wifiPassword(""),
+    wifiSsidSecondary(""),
+    wifiPasswordSecondary(""),
+    wifiDns(""),
+    wifiPortalOnFail(true),
     defaultTransitionPeriod(500),
     groupIdAliasNextId(0),
     _autoRestartPeriod(0)
@@ -251,6 +263,12 @@ public:
   String wifiStaticIP;
   String wifiStaticIPNetmask;
   String wifiStaticIPGateway;
+  String wifiSsid;
+  String wifiPassword;
+  String wifiSsidSecondary;
+  String wifiPasswordSecondary;
+  String wifiDns;
+  bool wifiPortalOnFail;
   size_t packetRepeatsPerLoop;
   std::map<String, GroupAlias> groupIdAliases;
   std::map<uint32_t, BulbId> deletedGroupIdAliases;
