@@ -187,7 +187,9 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
   size_t topicLen = strlen(topic);
 
   if ((topicLen + len + 10) < MQTT_MAX_PACKET_SIZE ) {
-    mqttClient.publish(topic, message, retain);
+    if (!mqttClient.publish(topic, message, retain)) {
+      DebugSerial.println(F("WARN: MQTT publish failed"));
+    }
   } else {
     const uint8_t* messageBuffer = reinterpret_cast<const uint8_t*>(message);
 
@@ -196,7 +198,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
 #endif
 
     if (!mqttClient.beginPublish(topic, len, retain)) {
-      DebugSerial.println(F("MqttClient - beginPublish failed"));
+      DebugSerial.println(F("WARN: MQTT beginPublish failed"));
       return;
     }
 
@@ -204,7 +206,7 @@ void MqttClient::send(const char* topic, const char* message, const bool retain)
       size_t toWrite = std::min(static_cast<size_t>(MQTT_PACKET_CHUNK_SIZE), len - i);
       size_t written = mqttClient.write(messageBuffer+i, toWrite);
       if (written != toWrite) {
-        DebugSerial.println(F("MqttClient - write failed mid-publish"));
+        DebugSerial.printf("WARN: MQTT write failed mid-publish (wrote %d of %d)\n", written, toWrite);
         break;
       }
 #ifdef MQTT_DEBUG
