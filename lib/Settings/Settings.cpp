@@ -314,7 +314,11 @@ String Settings::patch(JsonObject parsedSettings) {
   }
 
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_USERNAME), adminUsername);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_PASSWORD), adminPassword);
+  // Skip redacted sentinel "***" so saving settings back doesn't clobber real password
+  if (parsedSettings.containsKey(FPSTR(SettingsKeys::ADMIN_PASSWORD))
+      && strcmp(parsedSettings[FPSTR(SettingsKeys::ADMIN_PASSWORD)].as<const char*>(), "***") != 0) {
+    this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_PASSWORD), adminPassword);
+  }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::CE_PIN), cePin);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::CSN_PIN), csnPin);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::RESET_PIN), resetPin);
@@ -324,7 +328,10 @@ String Settings::patch(JsonObject parsedSettings) {
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::AUTO_RESTART_PERIOD), _autoRestartPeriod);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_SERVER), _mqttServer);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_USERNAME), mqttUsername);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_PASSWORD), mqttPassword);
+  if (parsedSettings.containsKey(FPSTR(SettingsKeys::MQTT_PASSWORD))
+      && strcmp(parsedSettings[FPSTR(SettingsKeys::MQTT_PASSWORD)].as<const char*>(), "***") != 0) {
+    this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_PASSWORD), mqttPassword);
+  }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN), mqttTopicPattern);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN), mqttUpdateTopicPattern);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN), mqttStateTopicPattern);
@@ -561,7 +568,7 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   JsonDocument root;
 
   root[FPSTR(SettingsKeys::ADMIN_USERNAME)] = this->adminUsername;
-  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = this->adminPassword;
+  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = this->adminPassword.length() > 0 ? "***" : "";
   root[FPSTR(SettingsKeys::CE_PIN)] = this->cePin;
   root[FPSTR(SettingsKeys::CSN_PIN)] = this->csnPin;
   root[FPSTR(SettingsKeys::RESET_PIN)] = this->resetPin;
@@ -572,7 +579,7 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   root[FPSTR(SettingsKeys::AUTO_RESTART_PERIOD)] = this->_autoRestartPeriod;
   root[FPSTR(SettingsKeys::MQTT_SERVER)] = this->_mqttServer;
   root[FPSTR(SettingsKeys::MQTT_USERNAME)] = this->mqttUsername;
-  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = this->mqttPassword;
+  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = this->mqttPassword.length() > 0 ? "***" : "";
   root[FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN)] = this->mqttTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN)] = this->mqttUpdateTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN)] = this->mqttStateTopicPattern;

@@ -30,7 +30,7 @@ void MiLightUdpServer::handleClient() {
   const size_t packetSize = socket.parsePacket();
 
   if (packetSize) {
-    socket.read(packetBuffer, packetSize);
+    socket.read(packetBuffer, min(packetSize, (size_t)MILIGHT_PACKET_BUFFER_SIZE));
 
 #ifdef MILIGHT_UDP_DEBUG
     printf("[MiLightUdpServer port %d] - Handling packet: ", port);

@@ -1,5 +1,6 @@
 #include <V2PacketFormatter.h>
 #include <V2RFEncoding.h>
+#include <MiLightRadioConfig.h>
 #include <DebugSerial.h>
 
 
@@ -68,7 +69,7 @@ void V2PacketFormatter::format(uint8_t const* packet, char* buffer) {
     buffer += sprintf_P(buffer, PSTR("%02X "), packet[i]);
   }
 
-  uint8_t decodedPacket[packetLength];
+  uint8_t decodedPacket[MILIGHT_MAX_PACKET_LENGTH];
   memcpy(decodedPacket, packet, packetLength);
 
   V2RFEncoding::decodeV2Packet(decodedPacket);

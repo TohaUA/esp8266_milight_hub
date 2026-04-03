@@ -295,7 +295,7 @@ void MiLightHttpServer::handleUpdateSettingsPost(RequestContext& request) {
 
 void MiLightHttpServer::handleFirmwarePost() {
   server.sendHeader("Connection", "close");
-  server.sendHeader("Access-Control-Allow-Origin", "*");
+  // Removed wildcard CORS — prevents cross-origin firmware upload from malicious websites
 
   if (Update.hasError()) {
     server.send_P(
