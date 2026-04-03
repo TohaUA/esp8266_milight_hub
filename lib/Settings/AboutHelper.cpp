@@ -36,6 +36,12 @@ void AboutHelper::generateAboutObject(JsonDocument &obj, bool abbreviated) {
   obj[FPSTR("firmware")] = QUOTE(FIRMWARE_NAME);
   obj[FPSTR("version")] = QUOTE(MILIGHT_HUB_VERSION);
   obj[FPSTR("ip_address")] = WiFi.localIP().toString();
+  obj[FPSTR("wifi_ssid")] = WiFi.SSID();
+  obj[FPSTR("wifi_rssi")] = WiFi.RSSI();
+  obj[FPSTR("wifi_gateway")] = WiFi.gatewayIP().toString();
+  obj[FPSTR("wifi_subnet")] = WiFi.subnetMask().toString();
+  obj[FPSTR("wifi_dns")] = WiFi.dnsIP().toString();
+  obj[FPSTR("wifi_mac")] = WiFi.macAddress();
 #ifdef ESP8266
   obj[FPSTR("reset_reason")] = ESP.getResetReason();
 #elif defined(ESP32)
