@@ -244,15 +244,14 @@ paths:
     get:
       tags:
       - System
-      summary: Download a backup of all settings
+      summary: Download a backup of all settings and aliases as JSON
       responses:
         200:
           description: success
           content:
-            application/octet-stream:
+            application/json:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/Backup'
   /remote_configs:
     get:
       tags:
@@ -1163,69 +1162,92 @@ components:
           description: If specified along with a password, HTTP basic auth will be enabled to access the web interface and the REST API.
           title: HTTP Username
           default: ""
+          maxLength: 32
         admin_password:
           type: string
           description: If specified along with a username, HTTP basic auth will be enabled to access the web interface and the REST API.
           title: HTTP Password
           default: ""
+          maxLength: 64
         ce_pin:
           type: integer
           description: CE pin to use for SPI radio (nRF24, LT8900)
           default: 4
+          minimum: 0
+          maximum: 39
         csn_pin:
           type: integer
           description: CSN pin to use with nRF24
           default: 15
+          minimum: 0
+          maximum: 39
         reset_pin:
           type: integer
           description: Reset pin to use with LT8900
           default: 0
+          minimum: 0
+          maximum: 39
         led_pin:
           type: integer
           description: Pin to control for status LED.  Set to a negative value to invert on/off status.
           default: -2
+          minimum: -39
+          maximum: 39
         packet_repeats:
           type: integer
           description: Number of times to resend the same 2.4 GHz milight packet when a command is sent.
           default: 50
+          minimum: 1
+          maximum: 1000
         http_repeat_factor:
           type: integer
           description: Packet repeats resulting from REST commands will be multiplied by this number.
           default: 1
+          minimum: 1
+          maximum: 100
         auto_restart_period:
           type: integer
           description: Automatically restart the device after the number of specified minutes.  Use 0 to disable.
           default: 0
+          minimum: 0
+          maximum: 71582
         mqtt_server:
           description: MQTT server to connect to. Can contain port number in the form 'mqtt-hostname:1883'. Leave empty to disable MQTT.
+          maxLength: 128
           oneOf:
             - type: string
               format: hostname
-            - type: string 
+            - type: string
               maxLength: 0
           nullable: true
         mqtt_username:
           type: string
           description: If specified, use this username to authenticate with the MQTT server.
+          maxLength: 64
         mqtt_password:
           type: string
           description: If specified, use this password to authenticate with the MQTT server.
+          maxLength: 128
         mqtt_topic_pattern:
           type: string
           description: Topic pattern to listen on for commands.  More detail on the format in README.
           example: milight/commands/:device_id/:device_type/:group_id
+          maxLength: 128
         mqtt_update_topic_pattern:
           type: string
           description: Topic pattern individual intercepted commands will be sent to.  More detail on the format in README.
           example: milight/updates/:device_id/:device_type/:group_id
+          maxLength: 128
         mqtt_state_topic_pattern:
           type: string
           description: Topic pattern device state will be sent to.  More detail on the format in README.
           example: milight/state/:device_id/:device_type/:group_id
+          maxLength: 128
         mqtt_client_status_topic:
           type: string
           description: Topic client status will be sent to.
           example: milight/status
+          maxLength: 128
         mqtt_retain:
           type: boolean
           description: If true, messages sent to state and client status topics will be published with the retain flag.
@@ -1251,21 +1273,27 @@ components:
           default: 3
         state_flush_interval:
           type: integer
-          description: Controls how many miliseconds must pass between states being flushed to persistent storage.  Set to 0 to disable throttling.
+          description: Controls how many miliseconds must pass between states being flushed to persistent storage.  0 to disable, minimum 100 if enabled.
           default: 10000
         mqtt_state_rate_limit:
           type: integer
           description: Controls how many miliseconds must pass between MQTT state updates.  Set to 0 to disable throttling.
           default: 500
+          minimum: 0
+          maximum: 60000
         mqtt_debounce_delay:
           type: integer
           description: Controls how much time has to pass after the last status update was queued.
           default: 500
+          minimum: 0
+          maximum: 60000
         packet_repeat_throttle_threshold:
           type: integer
           description:
             Controls how packet repeats are throttled.  Packets sent with less time (measured in milliseconds) between them than this value (in milliseconds) will cause packet repeats to be throttled down.  More than this value will unthrottle up.
           default: 200
+          minimum: 0
+          maximum: 10000
         packet_repeat_throttle_sensitivity:
           type: integer
           description:
@@ -1278,6 +1306,8 @@ components:
           description:
             Controls how far throttling can decrease the number of repeated packets
           default: 3
+          minimum: 1
+          maximum: 1000
         enable_automatic_mode_switching:
           type: boolean
           description:
@@ -1299,11 +1329,15 @@ components:
           type: integer
           description: Number of times the LED will flash when packets are changing
           default: 3
+          minimum: 0
+          maximum: 100
         hostname:
           type: string
           description: Hostname that will be advertized on a DHCP request
           pattern: "[a-zA-Z0-9-]+"
           default: milight-hub
+          minLength: 1
+          maxLength: 63
         rf24_power_level:
           type: string
           enum:
@@ -1331,10 +1365,13 @@ components:
           type: integer
           default: 10
           description: Packets are sent asynchronously.  This number controls the number of repeats sent during each iteration.  Increase this number to improve packet throughput.  Decrease to improve system multi-tasking.
+          minimum: 1
+          maximum: 1000
         home_assistant_discovery_prefix:
           type: string
           description: If specified along with MQTT settings, will enable HomeAssistant MQTT discovery using the specified discovery prefix.  HomeAssistant's default is `homeassistant/`.
           default: "homeassistant/"
+          maxLength: 128
         wifi_mode:
           type: string
           enum:
@@ -1348,6 +1385,8 @@ components:
           items:
             $ref: '#/components/schemas/RF24Channel'
           description: Defines which channels we send on.  Each remote type has three channels.  We can send on any subset of these.
+          minItems: 1
+          maxItems: 3
         gateway_configs:
           type: array
           items:
@@ -1376,6 +1415,8 @@ components:
           description: |
             Default number of milliseconds between transition packets.  Set this value lower for more granular transitions, or higher if
             you are having performance issues during transitions.
+          minimum: 100
+          maximum: 65535
     UpdateBatch:
       type: object
       properties:
@@ -1388,6 +1429,28 @@ components:
           anyOf:
             - $ref: '#/components/schemas/GroupStateCommands'
             - $ref: '#/components/schemas/GroupState'
+    Backup:
+      type: object
+      required:
+        - settings
+      properties:
+        settings:
+          $ref: '#/components/schemas/Settings'
+        aliases:
+          type: object
+          description: |
+            Map of alias names to bulb identifiers. Each value is a 3-element array: [device_type, device_id, group_id].
+          additionalProperties:
+            type: array
+            minItems: 3
+            maxItems: 3
+            items:
+              oneOf:
+                - type: string
+                - type: integer
+          example:
+            living_room: ["rgb_cct", 1234, 1]
+            bedroom: ["rgb_cct", 1234, 2]
     BooleanResponse:
       type: object
       required:
