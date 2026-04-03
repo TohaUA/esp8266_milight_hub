@@ -48,19 +48,45 @@ export default function SettingsPage() {
     mode: "onBlur",
   });
 
+  const wifiFields = new Set([
+    "wifi_ssid",
+    "wifi_password",
+    "wifi_ssid_secondary",
+    "wifi_password_secondary",
+    "wifi_static_ip",
+    "wifi_static_ip_gateway",
+    "wifi_static_ip_netmask",
+    "wifi_dns",
+    "wifi_portal_on_fail",
+  ]);
+
   const debouncedOnSubmit = useCallback(
     debounce(() => {
       const update: Partial<Settings> = {};
+      const dirtyFields = form.formState.dirtyFields;
 
-      for (const field in form.formState.dirtyFields) {
+      for (const field in dirtyFields) {
         update[field as keyof Settings] = form.getValues(field);
       }
 
-      if (Object.keys(update).length > 0) {
-        api.putSettings(update).then(() => {
+      if (Object.keys(update).length === 0) return;
+
+      const hasWifiChange = Object.keys(update).some((f) => wifiFields.has(f));
+
+      if (hasWifiChange) {
+        const confirmed = window.confirm(
+          "Changing WiFi settings will restart the device. " +
+            "If the new credentials are wrong, the device may become unreachable. Continue?"
+        );
+        if (!confirmed) {
           form.reset(form.getValues());
-        });
+          return;
+        }
       }
+
+      api.putSettings(update).then(() => {
+        form.reset(form.getValues());
+      });
     }, 300),
     [form]
   );
