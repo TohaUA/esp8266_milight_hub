@@ -65,15 +65,12 @@ void snapshotWifiSettings() {
 }
 
 bool wifiSettingsChanged() {
-  return prevWifiSsid != settings.wifiSsid
-      || prevWifiPassword != settings.wifiPassword
-      || prevWifiSsidSecondary != settings.wifiSsidSecondary
-      || prevWifiPasswordSecondary != settings.wifiPasswordSecondary
-      || prevWifiStaticIP != settings.wifiStaticIP
-      || prevWifiStaticIPGateway != settings.wifiStaticIPGateway
-      || prevWifiStaticIPNetmask != settings.wifiStaticIPNetmask
-      || prevWifiDns != settings.wifiDns
-      || prevWifiPortalOnFail != settings.wifiPortalOnFail;
+  return prevWifiSsid != settings.wifiSsid || prevWifiPassword != settings.wifiPassword ||
+         prevWifiSsidSecondary != settings.wifiSsidSecondary ||
+         prevWifiPasswordSecondary != settings.wifiPasswordSecondary || prevWifiStaticIP != settings.wifiStaticIP ||
+         prevWifiStaticIPGateway != settings.wifiStaticIPGateway ||
+         prevWifiStaticIPNetmask != settings.wifiStaticIPNetmask || prevWifiDns != settings.wifiDns ||
+         prevWifiPortalOnFail != settings.wifiPortalOnFail;
 }
 
 MiLightClient* milightClient = NULL;
@@ -534,7 +531,8 @@ void applyStaticIPConfig() {
     if (settings.wifiDns.length() > 0) {
       dns.fromString(settings.wifiDns);
       WiFi.config(ip, gw, subnet, dns);
-    } else {
+    }
+    else {
       WiFi.config(ip, gw, subnet);
     }
   }
@@ -545,7 +543,8 @@ void applyStaticIPConfig() {
  * Blocks for up to timeoutMs milliseconds.
  */
 bool tryConnect(const String& ssid, const String& password, unsigned long timeoutMs = 20000) {
-  if (ssid.length() == 0) return false;
+  if (ssid.length() == 0)
+    return false;
 
   DebugSerial.printf("Trying WiFi: %s\n", ssid.c_str());
   applyStaticIPConfig();
@@ -603,7 +602,7 @@ void setup() {
       }
       if (!connected) {
         if (settings.wifiPortalOnFail) {
-          break;  // fall through to portal
+          break; // fall through to portal
         }
         DebugSerial.println(F("Both WiFi networks failed. Retrying..."));
         delay(5000);
@@ -644,6 +643,15 @@ void setup() {
     DebugSerial.println(F("Wifi connected successfully"));
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
+
+    // If connected via portal, save credentials to settings so future boots
+    // use the fast tryConnect path instead of falling through to portal again
+    if (settings.wifiSsid.length() == 0 && WiFi.SSID().length() > 0) {
+      DebugSerial.println(F("Saving portal credentials to settings"));
+      settings.wifiSsid = WiFi.SSID();
+      settings.wifiPassword = WiFi.psk();
+      settings.save();
+    }
 
     postConnectSetup();
   }
@@ -710,7 +718,8 @@ void loop() {
         DebugSerial.println(F("WiFi disconnected. Retrying current SSID..."));
         WiFi.reconnect();
         retryCount++;
-      } else {
+      }
+      else {
         // Switch to the other SSID
         retryCount = 0;
         onSecondary = !onSecondary;
@@ -721,7 +730,8 @@ void loop() {
           DebugSerial.printf("Failing over to %s\n", ssid.c_str());
           applyStaticIPConfig();
           WiFi.begin(ssid.c_str(), pass.c_str());
-        } else {
+        }
+        else {
           // Other SSID not configured, flip back
           onSecondary = !onSecondary;
           WiFi.reconnect();

@@ -8,22 +8,21 @@
 #include <StreamUtils.h>
 #include <DebugSerial.h>
 
-const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS({
-  GroupStateField::STATE,
-  GroupStateField::BRIGHTNESS,
-  GroupStateField::COMPUTED_COLOR,
-  GroupStateField::MODE,
-  GroupStateField::COLOR_TEMP,
-  GroupStateField::COLOR_MODE
-});
+const std::vector<GroupStateField> DEFAULT_GROUP_STATE_FIELDS(
+  {GroupStateField::STATE,
+   GroupStateField::BRIGHTNESS,
+   GroupStateField::COMPUTED_COLOR,
+   GroupStateField::MODE,
+   GroupStateField::COLOR_TEMP,
+   GroupStateField::COLOR_MODE}
+);
 
-#define PORT_POSITION(s) ( s.indexOf(':') )
+#define PORT_POSITION(s) (s.indexOf(':'))
 
 GatewayConfig::GatewayConfig(uint16_t deviceId, uint16_t port, uint8_t protocolVersion)
-  : deviceId(deviceId)
-  , port(port)
-  , protocolVersion(protocolVersion)
-{ }
+  : deviceId(deviceId),
+    port(port),
+    protocolVersion(protocolVersion) {}
 
 bool Settings::isAuthenticationEnabled() const {
   return adminUsername.length() > 0 && adminPassword.length() > 0;
@@ -64,9 +63,11 @@ void Settings::updateGatewayConfigs(JsonArray arr) {
     JsonArray params = arr[i];
 
     if (params.size() == 3) {
-      std::shared_ptr<GatewayConfig> ptr = std::make_shared<GatewayConfig>(parseInt<uint16_t>(params[0]), params[1], params[2]);
+      std::shared_ptr<GatewayConfig> ptr =
+        std::make_shared<GatewayConfig>(parseInt<uint16_t>(params[0]), params[1], params[2]);
       gatewayConfigs.push_back(std::move(ptr));
-    } else {
+    }
+    else {
       DebugSerial.print(F("Settings - skipped parsing gateway ports settings for element #"));
       DebugSerial.println(i);
     }
@@ -74,7 +75,8 @@ void Settings::updateGatewayConfigs(JsonArray arr) {
 }
 
 String Settings::validateStringLen(JsonObject obj, const __FlashStringHelper* key, size_t maxLen) {
-  if (!obj.containsKey(key)) return String();
+  if (!obj.containsKey(key))
+    return String();
   if (!obj[key].is<const char*>()) {
     char buf[64];
     snprintf_P(buf, sizeof(buf), PSTR("%s: must be a string"), reinterpret_cast<const char*>(key));
@@ -90,7 +92,8 @@ String Settings::validateStringLen(JsonObject obj, const __FlashStringHelper* ke
 }
 
 String Settings::validateRange(JsonObject obj, const __FlashStringHelper* key, long min, long max) {
-  if (!obj.containsKey(key)) return String();
+  if (!obj.containsKey(key))
+    return String();
   if (!obj[key].is<int>() && !obj[key].is<long>() && !obj[key].is<unsigned int>()) {
     char buf[64];
     snprintf_P(buf, sizeof(buf), PSTR("%s: must be a number"), reinterpret_cast<const char*>(key));
@@ -105,8 +108,11 @@ String Settings::validateRange(JsonObject obj, const __FlashStringHelper* key, l
   return String();
 }
 
-String Settings::validateEnum(JsonObject obj, const __FlashStringHelper* key, const char* const validValues[], size_t numValues) {
-  if (!obj.containsKey(key)) return String();
+String Settings::validateEnum(
+  JsonObject obj, const __FlashStringHelper* key, const char* const validValues[], size_t numValues
+) {
+  if (!obj.containsKey(key))
+    return String();
   if (!obj[key].is<const char*>()) {
     char buf[64];
     snprintf_P(buf, sizeof(buf), PSTR("%s: must be a string"), reinterpret_cast<const char*>(key));
@@ -114,7 +120,8 @@ String Settings::validateEnum(JsonObject obj, const __FlashStringHelper* key, co
   }
   const char* val = obj[key].as<const char*>();
   for (size_t i = 0; i < numValues; i++) {
-    if (strcasecmp(val, validValues[i]) == 0) return String();
+    if (strcasecmp(val, validValues[i]) == 0)
+      return String();
   }
   char buf[80];
   snprintf_P(buf, sizeof(buf), PSTR("%s: invalid value '%s'"), reinterpret_cast<const char*>(key), val);
@@ -125,24 +132,42 @@ String Settings::validate(JsonObject obj) const {
   String err;
 
   // --- String lengths ---
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_USERNAME), 32)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_PASSWORD), 64)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_SERVER), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_USERNAME), 64)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_PASSWORD), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_CLIENT_STATUS_TOPIC), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), 128)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP), 15)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), 15)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), 15)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID), 32)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD), 63)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID_SECONDARY), 32)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY), 63)).length()) return err;
-  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_DNS), 15)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_USERNAME), 32)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_PASSWORD), 64)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_SERVER), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_USERNAME), 64)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_PASSWORD), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_CLIENT_STATUS_TOPIC), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), 128)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP), 15)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), 15)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), 15)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID), 32)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD), 63)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_SSID_SECONDARY), 32)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY), 63)).length())
+    return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_DNS), 15)).length())
+    return err;
 
   // Secondary WiFi requires primary
   if (obj.containsKey(FPSTR(SettingsKeys::WIFI_SSID_SECONDARY))) {
@@ -161,50 +186,79 @@ String Settings::validate(JsonObject obj) const {
 
   // hostname: 1-63 chars
   if (obj.containsKey(FPSTR(SettingsKeys::HOSTNAME))) {
-    if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOSTNAME), 63)).length()) return err;
+    if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOSTNAME), 63)).length())
+      return err;
     const char* h = obj[FPSTR(SettingsKeys::HOSTNAME)].as<const char*>();
-    if (h && strlen(h) == 0) return F("hostname: must not be empty");
+    if (h && strlen(h) == 0)
+      return F("hostname: must not be empty");
   }
 
   // --- Enums ---
   static const char* const radioTypes[] = {"nRF24", "LT8900"};
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RADIO_INTERFACE_TYPE), radioTypes, 2)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RADIO_INTERFACE_TYPE), radioTypes, 2)).length())
+    return err;
 
   static const char* const wifiModes[] = {"b", "g", "n"};
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::WIFI_MODE), wifiModes, 3)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::WIFI_MODE), wifiModes, 3)).length())
+    return err;
 
   static const char* const rf24PowerLevels[] = {"MIN", "LOW", "HIGH", "MAX"};
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_POWER_LEVEL), rf24PowerLevels, 4)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_POWER_LEVEL), rf24PowerLevels, 4)).length())
+    return err;
 
   static const char* const rf24ChannelValues[] = {"LOW", "MID", "HIGH"};
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL), rf24ChannelValues, 3)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL), rf24ChannelValues, 3)).length())
+    return err;
 
-  static const char* const ledModes[] = {"Off", "Slow toggle", "Fast toggle", "Slow blip", "Fast blip", "Flicker", "On"};
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_CONFIG), ledModes, 7)).length()) return err;
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_FAILED), ledModes, 7)).length()) return err;
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_OPERATING), ledModes, 7)).length()) return err;
-  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_PACKET), ledModes, 7)).length()) return err;
+  static const char* const ledModes[] = {
+    "Off", "Slow toggle", "Fast toggle", "Slow blip", "Fast blip", "Flicker", "On"
+  };
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_CONFIG), ledModes, 7)).length())
+    return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_FAILED), ledModes, 7)).length())
+    return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_OPERATING), ledModes, 7)).length())
+    return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_PACKET), ledModes, 7)).length())
+    return err;
 
   // --- GPIO pins ---
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::CE_PIN), 0, 39)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::CSN_PIN), 0, 39)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::RESET_PIN), 0, 39)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_PIN), -39, 39)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::CE_PIN), 0, 39)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::CSN_PIN), 0, 39)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::RESET_PIN), 0, 39)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_PIN), -39, 39)).length())
+    return err;
 
   // --- Integer ranges ---
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS), 1, 1000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::HTTP_REPEAT_FACTOR), 1, 100)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::LISTEN_REPEATS), 0, 255)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::DISCOVERY_PORT), 0, 65535)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_STATE_RATE_LIMIT), 0, 60000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_DEBOUNCE_DELAY), 0, 60000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_THRESHOLD), 0, 10000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_SENSITIVITY), 0, 1000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_MINIMUM), 1, 1000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_MODE_PACKET_COUNT), 0, 100)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP), 1, 1000)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD), 100, 65535)).length()) return err;
-  if ((err = validateRange(obj, FPSTR(SettingsKeys::AUTO_RESTART_PERIOD), 0, 71582)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS), 1, 1000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::HTTP_REPEAT_FACTOR), 1, 100)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LISTEN_REPEATS), 0, 255)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::DISCOVERY_PORT), 0, 65535)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_STATE_RATE_LIMIT), 0, 60000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_DEBOUNCE_DELAY), 0, 60000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_THRESHOLD), 0, 10000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_SENSITIVITY), 0, 1000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_MINIMUM), 1, 1000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_MODE_PACKET_COUNT), 0, 100)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP), 1, 1000)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD), 100, 65535)).length())
+    return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::AUTO_RESTART_PERIOD), 0, 71582)).length())
+    return err;
 
   // state_flush_interval: 0 (disabled) or 100-3600000
   if (obj.containsKey(FPSTR(SettingsKeys::STATE_FLUSH_INTERVAL))) {
@@ -225,11 +279,15 @@ String Settings::validate(JsonObject obj) const {
     }
     static const char* const validChannels[] = {"LOW", "MID", "HIGH"};
     for (size_t i = 0; i < arr.size(); i++) {
-      if (!arr[i].is<const char*>()) return F("rf24_channels: elements must be strings");
+      if (!arr[i].is<const char*>())
+        return F("rf24_channels: elements must be strings");
       const char* ch = arr[i].as<const char*>();
       bool valid = false;
       for (size_t j = 0; j < 3; j++) {
-        if (strcmp(ch, validChannels[j]) == 0) { valid = true; break; }
+        if (strcmp(ch, validChannels[j]) == 0) {
+          valid = true;
+          break;
+        }
       }
       if (!valid) {
         char buf[64];
@@ -258,13 +316,17 @@ String Settings::validate(JsonObject obj) const {
       return F("gateway_configs: max 64 entries");
     }
     for (size_t i = 0; i < arr.size(); i++) {
-      if (!arr[i].is<JsonArray>()) return F("gateway_configs: each entry must be [device_id, port, protocol]");
+      if (!arr[i].is<JsonArray>())
+        return F("gateway_configs: each entry must be [device_id, port, protocol]");
       JsonArray entry = arr[i].as<JsonArray>();
-      if (entry.size() != 3) return F("gateway_configs: each entry must have 3 elements");
+      if (entry.size() != 3)
+        return F("gateway_configs: each entry must have 3 elements");
       long port = entry[1].as<long>();
       long proto = entry[2].as<long>();
-      if (port < 1 || port > 65535) return F("gateway_configs: port must be 1-65535");
-      if (proto != 5 && proto != 6) return F("gateway_configs: protocol must be 5 or 6");
+      if (port < 1 || port > 65535)
+        return F("gateway_configs: port must be 1-65535");
+      if (proto != 5 && proto != 6)
+        return F("gateway_configs: protocol must be 5 or 6");
     }
   }
 
@@ -277,7 +339,8 @@ String Settings::validate(JsonObject obj) const {
       return F("group_state_fields: max 16 entries");
     }
     for (size_t i = 0; i < arr.size(); i++) {
-      if (!arr[i].is<const char*>()) return F("group_state_fields: elements must be strings");
+      if (!arr[i].is<const char*>())
+        return F("group_state_fields: elements must be strings");
       if (GroupStateFieldHelpers::getFieldByName(arr[i].as<const char*>()) == GroupStateField::UNKNOWN) {
         char buf[80];
         snprintf_P(buf, sizeof(buf), PSTR("group_state_fields: unknown field '%s'"), arr[i].as<const char*>());
@@ -294,7 +357,9 @@ String Settings::validate(JsonObject obj) const {
     for (JsonPair kv : aliases) {
       if (strlen(kv.key().c_str()) > MAX_ALIAS_LEN) {
         char buf[80];
-        snprintf_P(buf, sizeof(buf), PSTR("group_id_aliases: alias '%s' exceeds max length %d"), kv.key().c_str(), MAX_ALIAS_LEN);
+        snprintf_P(
+          buf, sizeof(buf), PSTR("group_id_aliases: alias '%s' exceeds max length %d"), kv.key().c_str(), MAX_ALIAS_LEN
+        );
         return String(buf);
       }
       if (!kv.value().is<JsonArray>()) {
@@ -335,8 +400,10 @@ String Settings::patch(JsonObject parsedSettings) {
 
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_USERNAME), adminUsername);
   // Skip redacted sentinel "***" so saving settings back doesn't clobber real password
-  if (parsedSettings.containsKey(FPSTR(SettingsKeys::ADMIN_PASSWORD))
-      && strcmp(parsedSettings[FPSTR(SettingsKeys::ADMIN_PASSWORD)].as<const char*>(), "***") != 0) {
+  if (
+    parsedSettings.containsKey(FPSTR(SettingsKeys::ADMIN_PASSWORD)) &&
+    strcmp(parsedSettings[FPSTR(SettingsKeys::ADMIN_PASSWORD)].as<const char*>(), "***") != 0
+  ) {
     this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_PASSWORD), adminPassword);
   }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::CE_PIN), cePin);
@@ -348,8 +415,10 @@ String Settings::patch(JsonObject parsedSettings) {
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::AUTO_RESTART_PERIOD), _autoRestartPeriod);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_SERVER), _mqttServer);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_USERNAME), mqttUsername);
-  if (parsedSettings.containsKey(FPSTR(SettingsKeys::MQTT_PASSWORD))
-      && strcmp(parsedSettings[FPSTR(SettingsKeys::MQTT_PASSWORD)].as<const char*>(), "***") != 0) {
+  if (
+    parsedSettings.containsKey(FPSTR(SettingsKeys::MQTT_PASSWORD)) &&
+    strcmp(parsedSettings[FPSTR(SettingsKeys::MQTT_PASSWORD)].as<const char*>(), "***") != 0
+  ) {
     this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_PASSWORD), mqttPassword);
   }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN), mqttTopicPattern);
@@ -363,29 +432,41 @@ String Settings::patch(JsonObject parsedSettings) {
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_STATE_RATE_LIMIT), mqttStateRateLimit);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_DEBOUNCE_DELAY), mqttDebounceDelay);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::MQTT_RETAIN), mqttRetain);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_THRESHOLD), packetRepeatThrottleThreshold);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_SENSITIVITY), packetRepeatThrottleSensitivity);
+  this->setIfPresent(
+    parsedSettings, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_THRESHOLD), packetRepeatThrottleThreshold
+  );
+  this->setIfPresent(
+    parsedSettings, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_SENSITIVITY), packetRepeatThrottleSensitivity
+  );
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::PACKET_REPEAT_MINIMUM), packetRepeatMinimum);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ENABLE_AUTOMATIC_MODE_SWITCHING), enableAutomaticModeSwitching);
+  this->setIfPresent(
+    parsedSettings, FPSTR(SettingsKeys::ENABLE_AUTOMATIC_MODE_SWITCHING), enableAutomaticModeSwitching
+  );
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::LED_MODE_PACKET_COUNT), ledModePacketCount);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::HOSTNAME), hostname);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP), wifiStaticIP);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), wifiStaticIPGateway);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), wifiStaticIPNetmask);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_SSID), wifiSsid);
-  if (parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD))
-      && strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD)].as<const char*>(), "***") != 0) {
+  if (
+    parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD)) &&
+    strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD)].as<const char*>(), "***") != 0
+  ) {
     this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PASSWORD), wifiPassword);
   }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_SSID_SECONDARY), wifiSsidSecondary);
-  if (parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY))
-      && strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)].as<const char*>(), "***") != 0) {
+  if (
+    parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)) &&
+    strcmp(parsedSettings[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)].as<const char*>(), "***") != 0
+  ) {
     this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY), wifiPasswordSecondary);
   }
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_DNS), wifiDns);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::WIFI_PORTAL_ON_FAIL), wifiPortalOnFail);
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP), packetRepeatsPerLoop);
-  this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), homeAssistantDiscoveryPrefix);
+  this->setIfPresent(
+    parsedSettings, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), homeAssistantDiscoveryPrefix
+  );
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD), defaultTransitionPeriod);
 
   if (parsedSettings.containsKey(FPSTR(SettingsKeys::WIFI_MODE))) {
@@ -398,7 +479,8 @@ String Settings::patch(JsonObject parsedSettings) {
   }
 
   if (parsedSettings.containsKey(FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL))) {
-    this->rf24ListenChannel = RF24ChannelHelpers::valueFromName(parsedSettings[FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL)]);
+    this->rf24ListenChannel =
+      RF24ChannelHelpers::valueFromName(parsedSettings[FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL)]);
   }
 
   if (parsedSettings.containsKey(FPSTR(SettingsKeys::RF24_POWER_LEVEL))) {
@@ -435,7 +517,8 @@ String Settings::patch(JsonObject parsedSettings) {
   }
   if (parsedSettings.containsKey(FPSTR(SettingsKeys::GROUP_STATE_FIELDS))) {
     JsonArray arr = parsedSettings[FPSTR(SettingsKeys::GROUP_STATE_FIELDS)];
-    groupStateFields = JsonHelpers::jsonArrToVector<GroupStateField, const char*>(arr, GroupStateFieldHelpers::getFieldByName);
+    groupStateFields =
+      JsonHelpers::jsonArrToVector<GroupStateField, const char*>(arr, GroupStateFieldHelpers::getFieldByName);
   }
 
   // this key will only be present in old settings files, but for backwards
@@ -447,8 +530,9 @@ String Settings::patch(JsonObject parsedSettings) {
   return String();
 }
 
-std::map<String, GroupAlias>::const_iterator Settings::findAlias(MiLightRemoteType deviceType, uint16_t deviceId, uint8_t groupId) {
-  BulbId searchId{ deviceId, groupId, deviceType };
+std::map<String, GroupAlias>::const_iterator
+Settings::findAlias(MiLightRemoteType deviceType, uint16_t deviceId, uint8_t groupId) {
+  BulbId searchId{deviceId, groupId, deviceType};
 
   for (auto it = groupIdAliases.begin(); it != groupIdAliases.end(); ++it) {
     if (searchId == it->second.bulbId) {
@@ -488,7 +572,7 @@ void Settings::parseGroupIdAliases(JsonObject json) {
 void Settings::dumpGroupIdAliases(JsonObject json) {
   JsonObject aliases = json[FPSTR(SettingsKeys::GROUP_ID_ALIASES)].to<JsonObject>();
 
-  for (auto & groupIdAlias : groupIdAliases) {
+  for (auto& groupIdAlias : groupIdAliases) {
     JsonArray bulbProps = aliases[groupIdAlias.first].to<JsonArray>();
     BulbId bulbId = groupIdAlias.second.bulbId;
     bulbProps.add(MiLightRemoteTypeHelpers::remoteTypeToString(bulbId.deviceType));
@@ -497,7 +581,7 @@ void Settings::dumpGroupIdAliases(JsonObject json) {
   }
 }
 
-bool Settings::loadAliases(Settings &settings) {
+bool Settings::loadAliases(Settings& settings) {
   if (ProjectFS.exists(ALIASES_FILE)) {
     File f = ProjectFS.open(ALIASES_FILE, "r");
     ReadBufferingStream bufferedReader{f, 64};
@@ -505,7 +589,7 @@ bool Settings::loadAliases(Settings &settings) {
 
     // find current max id
     size_t maxId = 0;
-    for (auto & alias : settings.groupIdAliases) {
+    for (auto& alias : settings.groupIdAliases) {
       maxId = max(maxId, alias.second.id);
     }
     settings.groupIdAliasNextId = maxId + 1;
@@ -513,7 +597,8 @@ bool Settings::loadAliases(Settings &settings) {
     printf("loaded %d aliases\n", settings.groupIdAliases.size());
 
     return true;
-  } else {
+  }
+  else {
     return false;
   }
 }
@@ -531,10 +616,11 @@ bool Settings::load(Settings& settings) {
     auto error = deserializeJson(json, f);
     f.close();
 
-    if (! error) {
+    if (!error) {
       JsonObject parsedSettings = json.as<JsonObject>();
       settings.patch(parsedSettings);
-    } else {
+    }
+    else {
       DebugSerial.print(F("Error parsing saved settings file: "));
       DebugSerial.println(error.c_str());
       DebugSerial.println(F("contents:"));
@@ -544,7 +630,8 @@ bool Settings::load(Settings& settings) {
 
       return false;
     }
-  } else {
+  }
+  else {
     shouldInit = true;
   }
 
@@ -571,7 +658,8 @@ void Settings::save() {
   if (!f) {
     DebugSerial.println(F("Opening settings temp file failed"));
     return;
-  } else {
+  }
+  else {
     WriteBufferingStream writer{f, 64};
     serialize(writer);
     writer.flush();
@@ -585,7 +673,8 @@ void Settings::save() {
 
   if (!aliasesFile) {
     DebugSerial.println(F("Opening aliases temp file failed"));
-  } else {
+  }
+  else {
     WriteBufferingStream aliases{aliasesFile, 64};
     GroupAlias::saveAliases(aliases, groupIdAliases);
     aliases.flush();
@@ -596,11 +685,11 @@ void Settings::save() {
   }
 }
 
-void Settings::serialize(Print& stream, const bool prettyPrint, const bool includePlaintextPasswords) const {
+void Settings::serialize(Print& stream, const bool prettyPrint) const {
   JsonDocument root;
 
   root[FPSTR(SettingsKeys::ADMIN_USERNAME)] = this->adminUsername;
-  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = includePlaintextPasswords ? this->adminPassword : (this->adminPassword.length() > 0 ? String("***") : String(""));
+  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = this->adminPassword;
   root[FPSTR(SettingsKeys::CE_PIN)] = this->cePin;
   root[FPSTR(SettingsKeys::CSN_PIN)] = this->csnPin;
   root[FPSTR(SettingsKeys::RESET_PIN)] = this->resetPin;
@@ -611,7 +700,7 @@ void Settings::serialize(Print& stream, const bool prettyPrint, const bool inclu
   root[FPSTR(SettingsKeys::AUTO_RESTART_PERIOD)] = this->_autoRestartPeriod;
   root[FPSTR(SettingsKeys::MQTT_SERVER)] = this->_mqttServer;
   root[FPSTR(SettingsKeys::MQTT_USERNAME)] = this->mqttUsername;
-  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = includePlaintextPasswords ? this->mqttPassword : (this->mqttPassword.length() > 0 ? String("***") : String(""));
+  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = this->mqttPassword;
   root[FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN)] = this->mqttTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN)] = this->mqttUpdateTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN)] = this->mqttStateTopicPattern;
@@ -639,9 +728,9 @@ void Settings::serialize(Print& stream, const bool prettyPrint, const bool inclu
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY)] = this->wifiStaticIPGateway;
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK)] = this->wifiStaticIPNetmask;
   root[FPSTR(SettingsKeys::WIFI_SSID)] = this->wifiSsid;
-  root[FPSTR(SettingsKeys::WIFI_PASSWORD)] = includePlaintextPasswords ? this->wifiPassword : (this->wifiPassword.length() > 0 ? String("***") : String(""));
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD)] = this->wifiPassword;
   root[FPSTR(SettingsKeys::WIFI_SSID_SECONDARY)] = this->wifiSsidSecondary;
-  root[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)] = includePlaintextPasswords ? this->wifiPasswordSecondary : (this->wifiPasswordSecondary.length() > 0 ? String("***") : String(""));
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)] = this->wifiPasswordSecondary;
   root[FPSTR(SettingsKeys::WIFI_DNS)] = this->wifiDns;
   root[FPSTR(SettingsKeys::WIFI_PORTAL_ON_FAIL)] = this->wifiPortalOnFail;
   root[FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP)] = this->packetRepeatsPerLoop;
@@ -664,11 +753,14 @@ void Settings::serialize(Print& stream, const bool prettyPrint, const bool inclu
   }
 
   JsonArray groupStateFieldArr = root[FPSTR(SettingsKeys::GROUP_STATE_FIELDS)].to<JsonArray>();
-  JsonHelpers::vectorToJsonArr<GroupStateField, const char*>(groupStateFieldArr, groupStateFields, GroupStateFieldHelpers::getFieldName);
+  JsonHelpers::vectorToJsonArr<GroupStateField, const char*>(
+    groupStateFieldArr, groupStateFields, GroupStateFieldHelpers::getFieldName
+  );
 
   if (prettyPrint) {
     serializeJsonPretty(root, stream);
-  } else {
+  }
+  else {
     serializeJson(root, stream);
   }
 }
@@ -678,7 +770,8 @@ String Settings::mqttServer() {
 
   if (pos == -1) {
     return _mqttServer;
-  } else {
+  }
+  else {
     return _mqttServer.substring(0, pos);
   }
 }
@@ -688,7 +781,8 @@ uint16_t Settings::mqttPort() {
 
   if (pos == -1) {
     return DEFAULT_MQTT_PORT;
-  } else {
+  }
+  else {
     return atoi(_mqttServer.c_str() + pos + 1);
   }
 }
@@ -696,7 +790,8 @@ uint16_t Settings::mqttPort() {
 RadioInterfaceType Settings::typeFromString(const String& s) {
   if (s.equalsIgnoreCase("lt8900")) {
     return LT8900;
-  } else {
+  }
+  else {
     return nRF24;
   }
 }
@@ -715,9 +810,11 @@ String Settings::typeToString(RadioInterfaceType type) {
 WifiMode Settings::wifiModeFromString(const String& mode) {
   if (mode.equalsIgnoreCase("b")) {
     return WifiMode::B;
-  } else if (mode.equalsIgnoreCase("g")) {
+  }
+  else if (mode.equalsIgnoreCase("g")) {
     return WifiMode::G;
-  } else {
+  }
+  else {
     return WifiMode::N;
   }
 }
@@ -734,7 +831,7 @@ String Settings::wifiModeToString(WifiMode mode) {
   }
 }
 
-void Settings::addAlias(const char *alias, const BulbId &bulbId) {
+void Settings::addAlias(const char* alias, const BulbId& bulbId) {
   groupIdAliases[alias] = GroupAlias(groupIdAliasNextId++, alias, bulbId);
 }
 
