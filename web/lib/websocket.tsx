@@ -25,17 +25,19 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     `ws://${window.location.hostname}:81`,
     {
       share: true,
-      shouldReconnect: () => false,
+      shouldReconnect: () => true,
+      reconnectInterval: 3000,
+      reconnectAttempts: Infinity,
     }
   );
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
 
   useEffect(() => {
     if (lastJsonMessage !== null) {
-      setMessages((messages) => [
-        ...messages,
-        lastJsonMessage as WebSocketMessage,
-      ]);
+      setMessages((prev) => {
+        const updated = [...prev, lastJsonMessage as WebSocketMessage];
+        return updated.length > 500 ? updated.slice(-500) : updated;
+      });
     }
   }, [lastJsonMessage]);
 
