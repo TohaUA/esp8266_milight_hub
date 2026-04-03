@@ -596,11 +596,11 @@ void Settings::save() {
   }
 }
 
-void Settings::serialize(Print& stream, const bool prettyPrint) const {
+void Settings::serialize(Print& stream, const bool prettyPrint, const bool includePlaintextPasswords) const {
   JsonDocument root;
 
   root[FPSTR(SettingsKeys::ADMIN_USERNAME)] = this->adminUsername;
-  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = this->adminPassword.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::ADMIN_PASSWORD)] = includePlaintextPasswords ? this->adminPassword : (this->adminPassword.length() > 0 ? String("***") : String(""));
   root[FPSTR(SettingsKeys::CE_PIN)] = this->cePin;
   root[FPSTR(SettingsKeys::CSN_PIN)] = this->csnPin;
   root[FPSTR(SettingsKeys::RESET_PIN)] = this->resetPin;
@@ -611,7 +611,7 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   root[FPSTR(SettingsKeys::AUTO_RESTART_PERIOD)] = this->_autoRestartPeriod;
   root[FPSTR(SettingsKeys::MQTT_SERVER)] = this->_mqttServer;
   root[FPSTR(SettingsKeys::MQTT_USERNAME)] = this->mqttUsername;
-  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = this->mqttPassword.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::MQTT_PASSWORD)] = includePlaintextPasswords ? this->mqttPassword : (this->mqttPassword.length() > 0 ? String("***") : String(""));
   root[FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN)] = this->mqttTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN)] = this->mqttUpdateTopicPattern;
   root[FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN)] = this->mqttStateTopicPattern;
@@ -639,9 +639,9 @@ void Settings::serialize(Print& stream, const bool prettyPrint) const {
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY)] = this->wifiStaticIPGateway;
   root[FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK)] = this->wifiStaticIPNetmask;
   root[FPSTR(SettingsKeys::WIFI_SSID)] = this->wifiSsid;
-  root[FPSTR(SettingsKeys::WIFI_PASSWORD)] = this->wifiPassword.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD)] = includePlaintextPasswords ? this->wifiPassword : (this->wifiPassword.length() > 0 ? String("***") : String(""));
   root[FPSTR(SettingsKeys::WIFI_SSID_SECONDARY)] = this->wifiSsidSecondary;
-  root[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)] = this->wifiPasswordSecondary.length() > 0 ? "***" : "";
+  root[FPSTR(SettingsKeys::WIFI_PASSWORD_SECONDARY)] = includePlaintextPasswords ? this->wifiPasswordSecondary : (this->wifiPasswordSecondary.length() > 0 ? String("***") : String(""));
   root[FPSTR(SettingsKeys::WIFI_DNS)] = this->wifiDns;
   root[FPSTR(SettingsKeys::WIFI_PORTAL_ON_FAIL)] = this->wifiPortalOnFail;
   root[FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP)] = this->packetRepeatsPerLoop;

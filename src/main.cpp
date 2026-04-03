@@ -567,21 +567,6 @@ bool tryConnect(const String& ssid, const String& password, unsigned long timeou
   return false;
 }
 
-/**
- * On first boot after upgrade, migrate WiFiManager-stored credentials
- * into settings fields so the device continues to work.
- */
-void migrateWiFiManagerCredentials() {
-  if (settings.wifiSsid.length() > 0) return;  // already configured
-
-  String storedSSID = WiFi.SSID();
-  if (storedSSID.length() > 0) {
-    DebugSerial.printf("Migrating WiFiManager credentials for SSID: %s\n", storedSSID.c_str());
-    settings.wifiSsid = storedSSID;
-    settings.wifiPassword = WiFi.psk();
-    settings.save();
-  }
-}
 
 void setup() {
   DebugSerial.begin(9600);
@@ -606,9 +591,6 @@ void setup() {
     DebugSerial.println(F("Error setting up MDNS responder"));
   }
 
-  // Migrate credentials from WiFiManager flash storage (one-time on upgrade)
-  migrateWiFiManagerCredentials();
-
   // Attempt settings-driven WiFi connection
   bool connected = false;
 
@@ -632,7 +614,7 @@ void setup() {
   if (!connected) {
     // No SSIDs configured or both failed with portal enabled — use WiFiManager captive portal
     wifiManager = new WiFiManager();
-    wifiManager->setConfigPortalBlocking(false);
+    wifiManager->setBreakAfterConfig(true);
     wifiManager->setConnectTimeout(20);
     wifiManager->setConnectRetries(5);
 
@@ -662,6 +644,7 @@ void setup() {
     DebugSerial.println(F("Wifi connected successfully"));
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
+
     postConnectSetup();
   }
 

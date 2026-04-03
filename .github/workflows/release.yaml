@@ -84,7 +84,8 @@ jobs:
               name: tagName,
               body: await fs.readFile('./dist/release-notes.txt', 'utf8'),
               tag_name: tagName,
-              draft: true,
+              draft: false,
+              make_latest: 'true',
               target_commitish: sha
             });
 

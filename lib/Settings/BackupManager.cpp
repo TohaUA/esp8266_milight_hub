@@ -11,7 +11,7 @@ void BackupManager::createBackup(const Settings& settings, Print& stream) {
   stream.print(F("{\"settings\":"));
 
   // Serialize live in-memory settings directly (single allocation, no file I/O)
-  settings.serialize(stream);
+  settings.serialize(stream, false, true);
 
   // Append aliases as a sibling key inside the settings object.
   // Since serialize() already wrote a complete JSON object ending with '}',

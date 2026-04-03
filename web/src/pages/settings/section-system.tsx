@@ -132,7 +132,7 @@ const BackupsSection: React.FC = () => {
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Create Backup</h3>
         <Button variant="secondary" asChild>
-          <a href="/backup" download="espmh-backup.bin">
+          <a href="/backup" download="espmh-backup.json">
             Download Backup
           </a>
         </Button>
@@ -146,7 +146,7 @@ const BackupsSection: React.FC = () => {
               id="backupFile"
               onChange={handleFileChange}
               value={backupFile ? undefined : ""}
-              accept=".bin"
+              accept=".json,application/json"
               className="flex-grow"
             />
             <Button

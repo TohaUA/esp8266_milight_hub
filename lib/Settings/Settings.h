@@ -209,7 +209,7 @@ public:
   static std::vector<RF24Channel> defaultListenChannels();
 
   void save();
-  void serialize(Print& stream, const bool prettyPrint = false) const;
+  void serialize(Print& stream, const bool prettyPrint = false, const bool includePlaintextPasswords = false) const;
   void updateDeviceIds(JsonArray arr);
   void updateGatewayConfigs(JsonArray arr);
   String patch(JsonObject obj);
