@@ -200,6 +200,7 @@ public:
   void updateDeviceIds(JsonArray arr);
   void updateGatewayConfigs(JsonArray arr);
   String patch(JsonObject obj);
+  String validate(JsonObject obj) const;
   String mqttServer();
   uint16_t mqttPort();
   std::map<String, GroupAlias>::const_iterator findAlias(MiLightRemoteType deviceType, uint16_t deviceId, uint8_t groupId);
@@ -265,6 +266,10 @@ protected:
 
   void parseGroupIdAliases(JsonObject json);
   void dumpGroupIdAliases(JsonObject json);
+
+  static String validateStringLen(JsonObject obj, const __FlashStringHelper* key, size_t maxLen);
+  static String validateRange(JsonObject obj, const __FlashStringHelper* key, long min, long max);
+  static String validateEnum(JsonObject obj, const __FlashStringHelper* key, const char* const validValues[], size_t numValues);
 
   template <typename T>
   void setIfPresent(JsonObject obj, const __FlashStringHelper* key, T& var) {

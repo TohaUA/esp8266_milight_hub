@@ -73,10 +73,244 @@ void Settings::updateGatewayConfigs(JsonArray arr) {
   }
 }
 
+String Settings::validateStringLen(JsonObject obj, const __FlashStringHelper* key, size_t maxLen) {
+  if (!obj.containsKey(key)) return String();
+  if (!obj[key].is<const char*>()) {
+    char buf[64];
+    snprintf_P(buf, sizeof(buf), PSTR("%s: must be a string"), reinterpret_cast<const char*>(key));
+    return String(buf);
+  }
+  const char* val = obj[key].as<const char*>();
+  if (strlen(val) > maxLen) {
+    char buf[80];
+    snprintf_P(buf, sizeof(buf), PSTR("%s: max length is %d"), reinterpret_cast<const char*>(key), (int)maxLen);
+    return String(buf);
+  }
+  return String();
+}
+
+String Settings::validateRange(JsonObject obj, const __FlashStringHelper* key, long min, long max) {
+  if (!obj.containsKey(key)) return String();
+  if (!obj[key].is<int>() && !obj[key].is<long>() && !obj[key].is<unsigned int>()) {
+    char buf[64];
+    snprintf_P(buf, sizeof(buf), PSTR("%s: must be a number"), reinterpret_cast<const char*>(key));
+    return String(buf);
+  }
+  long val = obj[key].as<long>();
+  if (val < min || val > max) {
+    char buf[80];
+    snprintf_P(buf, sizeof(buf), PSTR("%s: must be between %ld and %ld"), reinterpret_cast<const char*>(key), min, max);
+    return String(buf);
+  }
+  return String();
+}
+
+String Settings::validateEnum(JsonObject obj, const __FlashStringHelper* key, const char* const validValues[], size_t numValues) {
+  if (!obj.containsKey(key)) return String();
+  if (!obj[key].is<const char*>()) {
+    char buf[64];
+    snprintf_P(buf, sizeof(buf), PSTR("%s: must be a string"), reinterpret_cast<const char*>(key));
+    return String(buf);
+  }
+  const char* val = obj[key].as<const char*>();
+  for (size_t i = 0; i < numValues; i++) {
+    if (strcasecmp(val, validValues[i]) == 0) return String();
+  }
+  char buf[80];
+  snprintf_P(buf, sizeof(buf), PSTR("%s: invalid value '%s'"), reinterpret_cast<const char*>(key), val);
+  return String(buf);
+}
+
+String Settings::validate(JsonObject obj) const {
+  String err;
+
+  // --- String lengths ---
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_USERNAME), 32)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::ADMIN_PASSWORD), 64)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_SERVER), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_USERNAME), 64)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_PASSWORD), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_TOPIC_PATTERN), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_UPDATE_TOPIC_PATTERN), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_STATE_TOPIC_PATTERN), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::MQTT_CLIENT_STATUS_TOPIC), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOME_ASSISTANT_DISCOVERY_PREFIX), 128)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP), 15)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_GATEWAY), 15)).length()) return err;
+  if ((err = validateStringLen(obj, FPSTR(SettingsKeys::WIFI_STATIC_IP_NETMASK), 15)).length()) return err;
+
+  // hostname: 1-63 chars
+  if (obj.containsKey(FPSTR(SettingsKeys::HOSTNAME))) {
+    if ((err = validateStringLen(obj, FPSTR(SettingsKeys::HOSTNAME), 63)).length()) return err;
+    const char* h = obj[FPSTR(SettingsKeys::HOSTNAME)].as<const char*>();
+    if (h && strlen(h) == 0) return F("hostname: must not be empty");
+  }
+
+  // --- Enums ---
+  static const char* const radioTypes[] = {"nRF24", "LT8900"};
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RADIO_INTERFACE_TYPE), radioTypes, 2)).length()) return err;
+
+  static const char* const wifiModes[] = {"b", "g", "n"};
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::WIFI_MODE), wifiModes, 3)).length()) return err;
+
+  static const char* const rf24PowerLevels[] = {"MIN", "LOW", "HIGH", "MAX"};
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_POWER_LEVEL), rf24PowerLevels, 4)).length()) return err;
+
+  static const char* const rf24ChannelValues[] = {"LOW", "MID", "HIGH"};
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::RF24_LISTEN_CHANNEL), rf24ChannelValues, 3)).length()) return err;
+
+  static const char* const ledModes[] = {"Off", "Slow toggle", "Fast toggle", "Slow blip", "Fast blip", "Flicker", "On"};
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_CONFIG), ledModes, 7)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_WIFI_FAILED), ledModes, 7)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_OPERATING), ledModes, 7)).length()) return err;
+  if ((err = validateEnum(obj, FPSTR(SettingsKeys::LED_MODE_PACKET), ledModes, 7)).length()) return err;
+
+  // --- GPIO pins ---
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::CE_PIN), 0, 39)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::CSN_PIN), 0, 39)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::RESET_PIN), 0, 39)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_PIN), -39, 39)).length()) return err;
+
+  // --- Integer ranges ---
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS), 1, 1000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::HTTP_REPEAT_FACTOR), 1, 100)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LISTEN_REPEATS), 0, 255)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::DISCOVERY_PORT), 0, 65535)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_STATE_RATE_LIMIT), 0, 60000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::MQTT_DEBOUNCE_DELAY), 0, 60000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_THRESHOLD), 0, 10000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_THROTTLE_SENSITIVITY), 0, 1000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEAT_MINIMUM), 1, 1000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::LED_MODE_PACKET_COUNT), 0, 100)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::PACKET_REPEATS_PER_LOOP), 1, 1000)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::DEFAULT_TRANSITION_PERIOD), 100, 65535)).length()) return err;
+  if ((err = validateRange(obj, FPSTR(SettingsKeys::AUTO_RESTART_PERIOD), 0, 71582)).length()) return err;
+
+  // state_flush_interval: 0 (disabled) or 100-3600000
+  if (obj.containsKey(FPSTR(SettingsKeys::STATE_FLUSH_INTERVAL))) {
+    long val = obj[FPSTR(SettingsKeys::STATE_FLUSH_INTERVAL)].as<long>();
+    if (val != 0 && (val < 100 || val > 3600000)) {
+      return F("state_flush_interval: must be 0 (disabled) or 100-3600000");
+    }
+  }
+
+  // --- Arrays ---
+  if (obj.containsKey(FPSTR(SettingsKeys::RF24_CHANNELS))) {
+    if (!obj[FPSTR(SettingsKeys::RF24_CHANNELS)].is<JsonArray>()) {
+      return F("rf24_channels: must be an array");
+    }
+    JsonArray arr = obj[FPSTR(SettingsKeys::RF24_CHANNELS)];
+    if (arr.size() == 0 || arr.size() > 3) {
+      return F("rf24_channels: must have 1-3 elements");
+    }
+    static const char* const validChannels[] = {"LOW", "MID", "HIGH"};
+    for (size_t i = 0; i < arr.size(); i++) {
+      if (!arr[i].is<const char*>()) return F("rf24_channels: elements must be strings");
+      const char* ch = arr[i].as<const char*>();
+      bool valid = false;
+      for (size_t j = 0; j < 3; j++) {
+        if (strcmp(ch, validChannels[j]) == 0) { valid = true; break; }
+      }
+      if (!valid) {
+        char buf[64];
+        snprintf_P(buf, sizeof(buf), PSTR("rf24_channels: invalid channel '%s'"), ch);
+        return String(buf);
+      }
+    }
+  }
+
+  if (obj.containsKey(FPSTR(SettingsKeys::DEVICE_IDS))) {
+    if (!obj[FPSTR(SettingsKeys::DEVICE_IDS)].is<JsonArray>()) {
+      return F("device_ids: must be an array");
+    }
+    JsonArray arr = obj[FPSTR(SettingsKeys::DEVICE_IDS)];
+    if (arr.size() > 256) {
+      return F("device_ids: max 256 entries");
+    }
+  }
+
+  if (obj.containsKey(FPSTR(SettingsKeys::GATEWAY_CONFIGS))) {
+    if (!obj[FPSTR(SettingsKeys::GATEWAY_CONFIGS)].is<JsonArray>()) {
+      return F("gateway_configs: must be an array");
+    }
+    JsonArray arr = obj[FPSTR(SettingsKeys::GATEWAY_CONFIGS)];
+    if (arr.size() > 64) {
+      return F("gateway_configs: max 64 entries");
+    }
+    for (size_t i = 0; i < arr.size(); i++) {
+      if (!arr[i].is<JsonArray>()) return F("gateway_configs: each entry must be [device_id, port, protocol]");
+      JsonArray entry = arr[i].as<JsonArray>();
+      if (entry.size() != 3) return F("gateway_configs: each entry must have 3 elements");
+      long port = entry[1].as<long>();
+      long proto = entry[2].as<long>();
+      if (port < 1 || port > 65535) return F("gateway_configs: port must be 1-65535");
+      if (proto != 5 && proto != 6) return F("gateway_configs: protocol must be 5 or 6");
+    }
+  }
+
+  if (obj.containsKey(FPSTR(SettingsKeys::GROUP_STATE_FIELDS))) {
+    if (!obj[FPSTR(SettingsKeys::GROUP_STATE_FIELDS)].is<JsonArray>()) {
+      return F("group_state_fields: must be an array");
+    }
+    JsonArray arr = obj[FPSTR(SettingsKeys::GROUP_STATE_FIELDS)];
+    if (arr.size() > 16) {
+      return F("group_state_fields: max 16 entries");
+    }
+    for (size_t i = 0; i < arr.size(); i++) {
+      if (!arr[i].is<const char*>()) return F("group_state_fields: elements must be strings");
+      if (GroupStateFieldHelpers::getFieldByName(arr[i].as<const char*>()) == GroupStateField::UNKNOWN) {
+        char buf[80];
+        snprintf_P(buf, sizeof(buf), PSTR("group_state_fields: unknown field '%s'"), arr[i].as<const char*>());
+        return String(buf);
+      }
+    }
+  }
+
+  if (obj.containsKey(FPSTR(SettingsKeys::GROUP_ID_ALIASES))) {
+    if (!obj[FPSTR(SettingsKeys::GROUP_ID_ALIASES)].is<JsonObject>()) {
+      return F("group_id_aliases: must be an object");
+    }
+    JsonObject aliases = obj[FPSTR(SettingsKeys::GROUP_ID_ALIASES)];
+    for (JsonPair kv : aliases) {
+      if (strlen(kv.key().c_str()) > MAX_ALIAS_LEN) {
+        char buf[80];
+        snprintf_P(buf, sizeof(buf), PSTR("group_id_aliases: alias '%s' exceeds max length %d"), kv.key().c_str(), MAX_ALIAS_LEN);
+        return String(buf);
+      }
+      if (!kv.value().is<JsonArray>()) {
+        return F("group_id_aliases: each value must be [device_type, device_id, group_id]");
+      }
+      JsonArray bulbArr = kv.value().as<JsonArray>();
+      if (bulbArr.size() != 3) {
+        return F("group_id_aliases: each value must have 3 elements");
+      }
+      if (!bulbArr[0].is<const char*>()) {
+        return F("group_id_aliases: device_type must be a string");
+      }
+      if (MiLightRemoteTypeHelpers::remoteTypeFromString(bulbArr[0].as<String>()) == REMOTE_TYPE_UNKNOWN) {
+        char buf[80];
+        snprintf_P(buf, sizeof(buf), PSTR("group_id_aliases: unknown device_type '%s'"), bulbArr[0].as<const char*>());
+        return String(buf);
+      }
+      long groupId = bulbArr[2].as<long>();
+      if (groupId < 0 || groupId > 8) {
+        return F("group_id_aliases: group_id must be 0-8");
+      }
+    }
+  }
+
+  return String(); // all checks passed
+}
+
 String Settings::patch(JsonObject parsedSettings) {
   if (parsedSettings.isNull()) {
     DebugSerial.println(F("Skipping patching loaded settings.  Parsed settings was null."));
     return String();
+  }
+
+  String validationError = validate(parsedSettings);
+  if (validationError.length() > 0) {
+    return validationError;
   }
 
   this->setIfPresent(parsedSettings, FPSTR(SettingsKeys::ADMIN_USERNAME), adminUsername);
